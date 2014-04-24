@@ -1,10 +1,13 @@
 #![crate_id = "argparse"]
 #![crate_type = "lib"]
 
+extern crate collections;
+
 use std::os;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::slice::Items;
+use collections::hashmap::HashMap;
 
 pub enum Action<'a> {
     StoreTrue(Rc<RefCell<&'a mut bool>>),
@@ -24,15 +27,24 @@ struct Argument<'a> {
 }
 
 pub struct ArgumentParser<'a> {
-    priv options: ~[DashOption<'a>],
-    priv arguments: ~[Argument<'a>],
+    priv options: ~[Rc<DashOption<'a>>],
+    priv arguments: ~[Rc<Argument<'a>>],
+    priv short_options: HashMap<char, Rc<DashOption<'a>>>,
+    priv long_options: HashMap<&'a str, Rc<DashOption<'a>>>,
 }
 
 struct Context<'a, 'b> {
-    //parser: &'a ArgumentParser<'b>,
-    options: &'a [DashOption<'b>],
-    arguments: &'a [Argument<'b>],
+    parser: &'a ArgumentParser<'b>,
     iter: Items<'a, ~str>,
+}
+
+impl<'a> Action<'a> {
+    fn has_arg(&self) -> bool {
+        return match *self {
+            StoreTrue(_) => false,
+            StoreFalse(_) => false,
+        }
+    }
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -51,11 +63,24 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 
     fn parse_long_option<'c>(&'c mut self, arg: &str) {
-        for opt in self.options.iter() {
-            for tname in opt.options.iter() {
-                if arg.eq(tname) {
-                    self.parse_option(opt);
-                    return;
+        for (name, opt) in self.parser.long_options.iter() {
+            if arg.eq(name) {
+                self.parse_option(&**opt);
+                return;
+            }
+        }
+    }
+
+    fn parse_short_options<'c>(&'c mut self, arg: &str) {
+        let mut iter = arg.chars();
+        iter.next();
+        for ch in iter {
+            match self.parser.short_options.find(&ch) {
+                Some(opt) => {
+                    self.parse_option(&**opt);
+                }
+                None => {
+                    fail!("Unknown short option \"{}\"", ch);
                 }
             }
         }
@@ -65,8 +90,7 @@ impl<'a, 'b> Context<'a, 'b> {
         -> Context<'c, 'd>
     {
         return Context {
-            options: parser.options,
-            arguments: parser.arguments,
+            parser: parser,
             iter: args.iter(),
         };
     }
@@ -76,11 +100,12 @@ impl<'a, 'b> Context<'a, 'b> {
             let next = self.iter.next();
             match next {
                 Some(arg) => {
-                    // positional args: ^$, ^-$, ^[^-].*
-                    if arg.len() < 2 || arg[0] != ('-' as u8) {
+                    if is_argument(*arg) {
                         self.parse_argument(*arg);
                     } else if arg[1] == ('-' as u8) {
                         self.parse_long_option(*arg);
+                    } else {
+                        self.parse_short_options(*arg);
                     }
                 }
                 None => {
@@ -97,15 +122,30 @@ impl<'a> ArgumentParser<'a> {
         return ArgumentParser {
             arguments: ~[],
             options: ~[],
+            short_options: HashMap::new(),
+            long_options: HashMap::new(),
             };
     }
     fn add_option<'c>(&'c mut self, names: ~[&'a str],
         help: &'a str, action: Action<'a>) {
-        self.options.push(DashOption {
+        let opt = Rc::new(DashOption {
             options: names,
             help: help,
             action: action,
             });
+        self.options.push(opt.clone());
+        for _n in opt.options.iter() {
+            let name = *_n;
+            if is_argument(name) {
+                fail!("Bad argument name {}", name);
+            } else if name[1] == ('-' as u8) {
+                self.long_options.insert(name, opt.clone());
+            } else if name.len() > 2 {
+                fail!("Bad short option {}", name);
+            } else {
+                self.short_options.insert(name[1] as char, opt.clone());
+            }
+        }
     }
     /*
     fn add_argument<'b>(&'b mut self, name: &'a str,
@@ -123,7 +163,11 @@ impl<'a> ArgumentParser<'a> {
     }
 }
 
-fn cell<'a, T>(val: &'a mut T) -> Rc<RefCell<&'a mut T>> {
+fn is_argument(name: &str) -> bool {
+    return name.len() < 2 || name[0] != ('-' as u8);
+}
+
+pub fn cell<'a, T>(val: &'a mut T) -> Rc<RefCell<&'a mut T>> {
     return Rc::new(RefCell::new(val));
 }
 
@@ -160,6 +204,33 @@ fn test_store_false() {
     assert!(verbose);
     ap.parse_args(~[~"./argparse_test", ~"--false"]);
     assert!(!verbose);
+}
+
+#[test]
+fn test_bool() {
+    let mut verbose = false;
+    let mut ap = ArgumentParser::new();
+    let c = cell(&mut verbose);
+    ap.add_option(~["-f", "--false"],
+        "Store false action",
+        StoreFalse(c.clone()));
+    ap.add_option(~["-t", "--true"],
+        "Store false action",
+        StoreTrue(c.clone()));
+    assert!(!verbose);
+    ap.parse_args(~[~"./argparse_test"]);
+    assert!(!verbose);
+    ap.parse_args(~[~"./argparse_test", ~"-t"]);
+    assert!(verbose);
+    ap.parse_args(~[~"./argparse_test", ~"-f"]);
+    assert!(!verbose);
+    ap.parse_args(~[~"./argparse_test", ~"-fft"]);
+    assert!(verbose);
+    ap.parse_args(~[~"./argparse_test", ~"-fffft", ~"-f"]);
+    assert!(!verbose);
+    ap.parse_args(~[~"./argparse_test", ~"--false", ~"-fffft", ~"-f",
+                    ~"--true"]);
+    assert!(verbose);
 }
 
 /*
