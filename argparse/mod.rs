@@ -9,3 +9,4 @@ mod parser;
 
 mod test_bool;
 mod test_parser;
+mod test_int;

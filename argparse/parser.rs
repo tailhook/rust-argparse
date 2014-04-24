@@ -7,9 +7,9 @@ use collections::hashmap::HashMap;
 pub enum Action<'a> {
     StoreTrue(Rc<RefCell<&'a mut bool>>),
     StoreFalse(Rc<RefCell<&'a mut bool>>),
-    /*
     IncrInt(Rc<RefCell<&'a mut int>>),
     DecrInt(Rc<RefCell<&'a mut int>>),
+    /*
     SetInt(Rc<RefCell<&'a mut int>>),
     */
 }
@@ -43,6 +43,9 @@ impl<'a> Action<'a> {
         return match *self {
             StoreTrue(_) => false,
             StoreFalse(_) => false,
+            IncrInt(_) => false,
+            DecrInt(_) => false,
+            //SetInt(_) => true,
         }
     }
 }
@@ -59,6 +62,17 @@ impl<'a, 'b> Context<'a, 'b> {
             StoreFalse(ref cell) => {
                 **cell.borrow_mut() = false;
             }
+            IncrInt(ref cell) => {
+                **cell.borrow_mut() += 1;
+            }
+            DecrInt(ref cell) => {
+                **cell.borrow_mut() -= 1;
+            }
+            /*
+            SetInt(ref cell) => {
+                **cell.borrow_mut() = ;
+            }
+            */
         }
     }
 
