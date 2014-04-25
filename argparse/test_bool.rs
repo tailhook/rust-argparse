@@ -8,9 +8,9 @@ fn test_store_true() {
         "Store true action",
         StoreTrue(cell(&mut verbose)));
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test"]);
+    ap.parse_list(~[~"./argparse_test"]);
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test", ~"--true"]);
+    ap.parse_list(~[~"./argparse_test", ~"--true"]);
     assert!(verbose);
 }
 
@@ -22,9 +22,9 @@ fn test_store_false() {
         "Store false action",
         StoreFalse(cell(&mut verbose)));
     assert!(verbose);
-    ap.parse_args(~[~"./argparse_test"]);
+    ap.parse_list(~[~"./argparse_test"]);
     assert!(verbose);
-    ap.parse_args(~[~"./argparse_test", ~"--false"]);
+    ap.parse_list(~[~"./argparse_test", ~"--false"]);
     assert!(!verbose);
 }
 
@@ -40,17 +40,17 @@ fn test_bool() {
         "Store false action",
         StoreTrue(c.clone()));
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test"]);
+    ap.parse_list(~[~"./argparse_test"]);
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test", ~"-t"]);
+    ap.parse_list(~[~"./argparse_test", ~"-t"]);
     assert!(verbose);
-    ap.parse_args(~[~"./argparse_test", ~"-f"]);
+    ap.parse_list(~[~"./argparse_test", ~"-f"]);
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test", ~"-fft"]);
+    ap.parse_list(~[~"./argparse_test", ~"-fft"]);
     assert!(verbose);
-    ap.parse_args(~[~"./argparse_test", ~"-fffft", ~"-f"]);
+    ap.parse_list(~[~"./argparse_test", ~"-fffft", ~"-f"]);
     assert!(!verbose);
-    ap.parse_args(~[~"./argparse_test", ~"--false", ~"-fffft", ~"-f",
+    ap.parse_list(~[~"./argparse_test", ~"--false", ~"-fffft", ~"-f",
                     ~"--true"]);
     assert!(verbose);
 }
