@@ -1,12 +1,15 @@
-use parser::{ArgumentParser, cell, StoreTrue, StoreFalse};
+use std::cell::RefCell;
+use parser::ArgumentParser;
+use bool::{StoreTrue, StoreFalse};
 
 #[test]
 fn test_store_true() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
-    ap.add_option(~["-t", "--true"],
+    ap.refer(&RefCell::new(&mut verbose))
+      .add_option(~["-t", "--true"],
         "Store true action",
-        StoreTrue(cell(&mut verbose)));
+        ~StoreTrue);
     assert!(!verbose);
     ap.parse_list(~[~"./argparse_test"]);
     assert!(!verbose);
@@ -18,9 +21,10 @@ fn test_store_true() {
 fn test_store_false() {
     let mut verbose = true;
     let mut ap = ArgumentParser::new();
-    ap.add_option(~["-f", "--false"],
+    ap.refer(&RefCell::new(&mut verbose))
+      .add_option(~["-f", "--false"],
         "Store false action",
-        StoreFalse(cell(&mut verbose)));
+        ~StoreFalse);
     assert!(verbose);
     ap.parse_list(~[~"./argparse_test"]);
     assert!(verbose);
@@ -32,13 +36,13 @@ fn test_store_false() {
 fn test_bool() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
-    let c = cell(&mut verbose);
-    ap.add_option(~["-f", "--false"],
+    ap.refer(&RefCell::new(&mut verbose))
+      .add_option(~["-f", "--false"],
         "Store false action",
-        StoreFalse(c.clone()));
-    ap.add_option(~["-t", "--true"],
+        ~StoreFalse)
+      .add_option(~["-t", "--true"],
         "Store false action",
-        StoreTrue(c.clone()));
+        ~StoreTrue);
     assert!(!verbose);
     ap.parse_list(~[~"./argparse_test"]);
     assert!(!verbose);

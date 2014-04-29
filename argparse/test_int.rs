@@ -1,12 +1,16 @@
-use parser::{ArgumentParser, cell, IncrInt, DecrInt, SetInt};
+use std::cell::RefCell;
+use parser::ArgumentParser;
+use num::{IncrBy,DecrBy};
+use generic::Store;
 
 #[test]
 fn incr_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
-    ap.add_option(~["-i", "--incr"],
+    ap.refer(&RefCell::new(&mut val))
+      .add_option(~["-i", "--incr"],
         "Increment value",
-        IncrInt(cell(&mut val)));
+        ~IncrBy(1));
     assert!(val == 0);
     ap.parse_list(~[~"./argparse_test"]);
     assert!(val == 0);
@@ -20,9 +24,10 @@ fn incr_int() {
 fn test_decr_int() {
     let mut val = 5;
     let mut ap = ArgumentParser::new();
-    ap.add_option(~["-d", "--decr"],
+    ap.refer(&RefCell::new(&mut val))
+      .add_option(~["-d", "--decr"],
         "Decrement value",
-        DecrInt(cell(&mut val)));
+        ~DecrBy(1));
     assert!(val == 5);
     ap.parse_list(~[~"./argparse_test"]);
     assert!(val == 5);
@@ -37,13 +42,13 @@ fn test_incr_decr() {
     let mut val = 0;
     {
         let mut ap = ArgumentParser::new();
-        let c = cell(&mut val);
-        ap.add_option(~["-d", "--decr"],
+        ap.refer(&RefCell::new(&mut val))
+          .add_option(~["-d", "--decr"],
             "Decrement value",
-            DecrInt(c.clone()));
-        ap.add_option(~["-i", "--incr"],
+            ~DecrBy(1))
+          .add_option(~["-i", "--incr"],
             "Increment value",
-            IncrInt(c.clone()));
+            ~IncrBy(1));
         assert!(val == 0);
         ap.parse_list(~[~"./argparse_test", ~"-iiddd", ~"--incr", ~"-iii"]);
     }
@@ -54,9 +59,10 @@ fn test_incr_decr() {
 fn test_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
-    ap.add_option(~["-s", "--set"],
+    ap.refer(&RefCell::new(&mut val))
+      .add_option(~["-s", "--set"],
         "Set integer value",
-        SetInt(cell(&mut val)));
+        ~Store::<int>);
     ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]);
     assert!(val == 10);
     ap.parse_list(~[~"./argparse_test", ~"--set", ~"99"]);
