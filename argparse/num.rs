@@ -1,8 +1,7 @@
 use std::cell::RefCell;
-use std::num::strconv::{from_str_bytes_common, ExpDec};
 
-use parser::Res;
 use action::{TypedAction, Action};
+use action::{ParseResult, Parsed};
 use action::IFlagAction;
 use action::Flag;
 
@@ -35,20 +34,20 @@ impl<T: 'static + Sub<T, T> + Copy> TypedAction<T> for DecrBy<T> {
 }
 
 impl<'a, T: Add<T, T> + Copy> IFlagAction for IncrByAction<'a, T> {
-    fn parse_flag(&self) -> Res {
+    fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
         let oldval = **targ;
         **targ = oldval + self.delta;
-        return Ok(());
+        return Parsed;
     }
 }
 
 impl<'a, T: Sub<T, T> + Copy> IFlagAction for DecrByAction<'a, T> {
-    fn parse_flag(&self) -> Res {
+    fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
         let oldval = **targ;
         **targ = oldval - self.delta;
-        return Ok(());
+        return Parsed;
     }
 }
 

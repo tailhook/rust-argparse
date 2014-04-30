@@ -1,6 +1,9 @@
 use std::cell::RefCell;
+
 use parser::ArgumentParser;
+use generic::Store;
 use bool::{StoreTrue, StoreFalse};
+use test_parser::{check_ok,check_err};
 
 #[test]
 fn test_store_true() {
@@ -11,9 +14,9 @@ fn test_store_true() {
         "Store true action",
         ~StoreTrue);
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test", ~"--true"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--true"]));
     assert!(verbose);
 }
 
@@ -26,9 +29,9 @@ fn test_store_false() {
         "Store false action",
         ~StoreFalse);
     assert!(verbose);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(verbose);
-    ap.parse_list(~[~"./argparse_test", ~"--false"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--false"]));
     assert!(!verbose);
 }
 
@@ -44,17 +47,40 @@ fn test_bool() {
         "Store false action",
         ~StoreTrue);
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test", ~"-t"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-t"]));
     assert!(verbose);
-    ap.parse_list(~[~"./argparse_test", ~"-f"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-f"]));
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test", ~"-fft"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-fft"]));
     assert!(verbose);
-    ap.parse_list(~[~"./argparse_test", ~"-fffft", ~"-f"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-fffft", ~"-f"]));
     assert!(!verbose);
-    ap.parse_list(~[~"./argparse_test", ~"--false", ~"-fffft", ~"-f",
-                    ~"--true"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--false", ~"-fffft", ~"-f",
+                    ~"--true"]));
     assert!(verbose);
+}
+
+#[test]
+fn test_set_bool() {
+    let mut verbose = false;
+    let mut ap = ArgumentParser::new();
+    ap.refer(&RefCell::new(&mut verbose))
+      .add_option(~["-s", "--set"],
+        "Set boolean value",
+        ~Store::<bool>);
+    assert!(!verbose);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
+    assert!(!verbose);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-strue"]));
+    assert!(verbose);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-sfalse"]));
+    assert!(!verbose);
+
+    // Unfortunately other values do not work
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-syes"]));
+    assert!(!verbose);
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-sno"]));
+    assert!(!verbose);
 }

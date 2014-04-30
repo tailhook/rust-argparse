@@ -1,7 +1,5 @@
 use std::cell::RefCell;
-use std::ascii::StrAsciiExt;
 
-use parser::Res;
 use action::Action;
 use action::TypedAction;
 use action::Flag;

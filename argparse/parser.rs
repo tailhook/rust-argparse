@@ -6,14 +6,12 @@ use std::os;
 use collections::hashmap::HashMap;
 
 use action::Action;
+use action::{ParseResult, Parsed, Exit, Error};
 use action::TypedAction;
 use action::{Flag, Single, Many};
 use action::IArgAction;
 
-pub type Res = Result<(),~str>;
-
 mod action;
-
 
 enum ArgumentKind {
     Positional,
@@ -57,12 +55,9 @@ pub struct Context<'a, 'b> {
 
 impl<'a, 'b> Context<'a, 'b> {
 
-    fn error(&self, message: &str) {
-        os::set_exit_status(2);
-        println!("{}", message);
-    }
-
-    fn get_next_option(&mut self, action: &IArgAction, name: &str) -> Res {
+    fn get_next_option(&mut self, action: &IArgAction, name: &str)
+        -> ParseResult
+    {
         let value = self.iter.next();
         match value {
             Some(arg) => {
@@ -70,12 +65,12 @@ impl<'a, 'b> Context<'a, 'b> {
                 return action.parse_arg(argborrow);
             }
             None => {
-               return Err(format!("Option {} requires value", name));
+               return Error(format!("Option {} requires value", name));
             }
         }
     }
 
-    fn parse_long_option<'c>(&'c mut self, arg: &str) -> Res {
+    fn parse_long_option<'c>(&'c mut self, arg: &str) -> ParseResult {
         let mut equals_iter = arg.splitn('=', 1);
         let optname = match equals_iter.next() {
             Some(value) => { value }
@@ -89,7 +84,7 @@ impl<'a, 'b> Context<'a, 'b> {
                     Flag(ref action) => {
                         match valueref {
                             Some(_) => {
-                                return Err(format!(
+                                return Error(format!(
                                     "Option {} does not accept an argument",
                                     optname));
                             }
@@ -113,19 +108,19 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
             }
             None => {
-                return Err(format!("Unknown option {}", arg));
+                return Error(format!("Unknown option {}", arg));
             }
         }
     }
 
-    fn parse_short_options<'c>(&'c mut self, arg: &str) -> Res {
+    fn parse_short_options<'c>(&'c mut self, arg: &str) -> ParseResult {
         let mut iter = arg.char_indices();
         iter.next();
         for (idx, ch) in iter {
             let opt = match self.parser.short_options.find(&ch) {
                 Some(opt) => { opt }
                 None => {
-                    return Err(format!("Unknown short option \"{}\"", ch));
+                    return Error(format!("Unknown short option \"{}\"", ch));
                 }
             };
             let res = match opt.action {
@@ -140,15 +135,15 @@ impl<'a, 'b> Context<'a, 'b> {
                 _ => { fail!("Not Implemented"); }
             };
             match res {
-                Ok(()) => { continue; }
+                Parsed => { continue; }
                 x => { return x; }
             }
         }
-        return Ok(());
+        return Parsed;
     }
 
     fn parse(parser: &ArgumentParser, args: &[~str])
-        -> Res
+        -> ParseResult
     {
         let mut ctx = Context {
             parser: parser,
@@ -167,20 +162,17 @@ impl<'a, 'b> Context<'a, 'b> {
                 ShortOption => { ctx.parse_short_options(*arg) }
             };
             match res {
-                Ok(()) => { continue; }
-                Err(x) => {
-                    ctx.error(x);
-                    return Err(x);
-                }
+                Parsed => continue,
+                _ => return res,
             }
         }
-        return Ok(());
+        return Parsed;
     }
 }
 
-struct Ref<'a, T> {
-    cell: &'a RefCell<&'a mut T>,
-    parser: &'a mut ArgumentParser<'a>,
+pub struct Ref<'a, T> {
+    priv cell: &'a RefCell<&'a mut T>,
+    priv parser: &'a mut ArgumentParser<'a>,
 }
 
 impl<'a, T> Ref<'a, T> {
@@ -246,19 +238,32 @@ impl<'a> ArgumentParser<'a> {
             };
     }
 
-    pub fn refer<'x, T>(&'x mut self, val: &'x RefCell<&'x mut T>) -> ~Ref<'x, T> {
+    pub fn refer<'x, T>(&'x mut self, val: &'x RefCell<&'x mut T>)
+        -> ~Ref<'x, T>
+    {
         return ~Ref {
             cell: val,
             parser: self,
         };
     }
 
-    pub fn parse_list(&self, args: ~[~str]) -> Res {
-        return Context::parse(self, args);
+    pub fn parse_list(&self, args: ~[~str]) -> Result<(), int> {
+        match Context::parse(self, args) {
+            Parsed => return Ok(()),
+            Exit => return Err(0),
+            Error(val) => {
+                self.error(args[0], val);
+                return Err(2);
+            }
+        }
     }
 
-    pub fn parse_args(&self) {
-        self.parse_list(os::args());
+    fn error(&self, command: &str, message: &str) {
+        println!("{}: {}", command, message);
+    }
+
+    pub fn parse_args(&self) -> Result<(), int> {
+        return self.parse_list(os::args());
     }
 }
 

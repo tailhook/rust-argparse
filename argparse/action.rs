@@ -1,6 +1,11 @@
 use std::cell::RefCell;
 
-use parser::Res;
+pub enum ParseResult {
+    Parsed,
+    Exit,
+    Error(~str),
+}
+
 
 pub enum Action {
     Flag(~IFlagAction),
@@ -13,13 +18,13 @@ pub trait TypedAction<T> {
 }
 
 pub trait IFlagAction {
-    fn parse_flag(&self) -> Res;
+    fn parse_flag(&self) -> ParseResult;
 }
 
 pub trait IArgAction {
-    fn parse_arg(&self, arg: &str) -> Res;
+    fn parse_arg(&self, arg: &str) -> ParseResult;
 }
 
 pub trait IArgsAction {
-    fn parse_args(&self, args: ~[&str]) -> Res;
+    fn parse_args(&self, args: ~[&str]) -> ParseResult;
 }

@@ -3,6 +3,7 @@ use std::from_str::FromStr;
 
 use parser::ArgumentParser;
 use generic::Store;
+use test_parser::{check_ok,check_err};
 
 enum Greeting {
     Hello,
@@ -28,10 +29,11 @@ fn test_parse_enum() {
       .add_option(~["-g"],
         "Greeting",
         ~Store::<Greeting>);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(match val { NoGreeting => true, _ => false });
-    ap.parse_list(~[~"./argparse_test", ~"-ghello"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-ghello"]));
     assert!(match val { Hello => true, _ => false });
-    ap.parse_list(~[~"./argparse_test", ~"-ghi"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-ghi"]));
     assert!(match val { Hi => true, _ => false });
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-ghell"]));
 }

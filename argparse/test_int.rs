@@ -1,7 +1,9 @@
 use std::cell::RefCell;
+
 use parser::ArgumentParser;
 use num::{IncrBy,DecrBy};
 use generic::Store;
+use test_parser::{check_ok,check_err};
 
 #[test]
 fn incr_int() {
@@ -12,11 +14,11 @@ fn incr_int() {
         "Increment value",
         ~IncrBy(1));
     assert!(val == 0);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(val == 0);
-    ap.parse_list(~[~"./argparse_test", ~"--incr"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--incr"]));
     assert!(val == 1);
-    ap.parse_list(~[~"./argparse_test", ~"-iiiii"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-iiiii"]));
     assert!(val == 6);
 }
 
@@ -29,11 +31,11 @@ fn test_decr_int() {
         "Decrement value",
         ~DecrBy(1));
     assert!(val == 5);
-    ap.parse_list(~[~"./argparse_test"]);
+    check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(val == 5);
-    ap.parse_list(~[~"./argparse_test", ~"--decr"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--decr"]));
     assert!(val == 4);
-    ap.parse_list(~[~"./argparse_test", ~"-ddddd"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-ddddd"]));
     assert!(val == -1);
 }
 
@@ -50,7 +52,8 @@ fn test_incr_decr() {
             "Increment value",
             ~IncrBy(1));
         assert!(val == 0);
-        ap.parse_list(~[~"./argparse_test", ~"-iiddd", ~"--incr", ~"-iii"]);
+        check_ok(ap.parse_list(~[~"./argparse_test",
+            ~"-iiddd", ~"--incr", ~"-iii"]));
     }
     assert_eq!(val, 3);
 }
@@ -63,14 +66,15 @@ fn test_int() {
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<int>);
-    ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]));
     assert!(val == 10);
-    ap.parse_list(~[~"./argparse_test", ~"--set", ~"99"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--set", ~"99"]));
     assert!(val == 99);
-    ap.parse_list(~[~"./argparse_test", ~"-s", ~"7", ~"-s77"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"7", ~"-s77"]));
     assert!(val == 77);
-    ap.parse_list(~[~"./argparse_test", ~"-s333", ~"--set=123"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s333", ~"--set=123"]));
     assert!(val == 123);
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-s1.5"]));
 }
 
 #[test]
@@ -81,6 +85,7 @@ fn test_i16() {
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<i16>);
-    ap.parse_list(~[~"./argparse_test", ~"-s", ~"124"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"124"]));
     assert_eq!(val, 124);
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-s", ~"1000000"]));
 }

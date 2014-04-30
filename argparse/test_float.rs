@@ -1,7 +1,9 @@
 use std::cell::RefCell;
+
 use parser::ArgumentParser;
 use num::{IncrBy,DecrBy};
 use generic::Store;
+use test_parser::{check_ok,check_err};
 
 #[test]
 fn test_incr_decr() {
@@ -16,7 +18,8 @@ fn test_incr_decr() {
             "Increment value",
             ~IncrBy(0.5));
         assert!(val == 0.5);
-        ap.parse_list(~[~"./argparse_test", ~"-iiddd", ~"--incr", ~"-iii"]);
+        check_ok(ap.parse_list(~[~"./argparse_test",
+            ~"-iiddd", ~"--incr", ~"-iii"]));
     }
     assert_eq!(val, 2.75);
 }
@@ -29,6 +32,7 @@ fn test_float() {
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<f64>);
-    ap.parse_list(~[~"./argparse_test", ~"-s", ~"15.125"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"15.125"]));
     assert_eq!(val, 15.125);
+    check_err(ap.parse_list(~[~"./argparse_test", ~"-s", ~"test"]));
 }

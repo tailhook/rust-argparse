@@ -1,6 +1,8 @@
 use std::cell::RefCell;
+
 use parser::ArgumentParser;
 use generic::Store;
+use test_parser::{check_ok,check_err};
 
 #[test]
 fn test_str() {
@@ -10,8 +12,9 @@ fn test_str() {
       .add_option(~["-s", "--set"],
         "Set string value",
         ~Store::<~str>);
-    ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]));
     assert!(val.eq(&~"10"));
-    ap.parse_list(~[~"./argparse_test", ~"--set", ~"value"]);
+    check_ok(ap.parse_list(~[~"./argparse_test", ~"--set", ~"value"]));
     assert!(val.eq(&~"value"));
+    check_err(ap.parse_list(~[~"./argparse_test", ~"--set"]));
 }

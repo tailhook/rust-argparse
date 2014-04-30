@@ -1,9 +1,9 @@
 use std::cell::RefCell;
 use std::from_str::FromStr;
 
-use parser::Res;
 use action::Action;
 use action::{TypedAction, IFlagAction, IArgAction};
+use action::{ParseResult, Parsed, Error};
 use action::{Flag, Single};
 
 mod action;
@@ -35,22 +35,22 @@ impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
 }
 
 impl<'a, T: Copy> IFlagAction for StoreConstAction<'a, T> {
-    fn parse_flag(&self) -> Res {
+    fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
         **targ = self.value;
-        return Ok(());
+        return Parsed;
     }
 }
 
 impl<'a, T: FromStr> IArgAction for StoreAction<'a, T> {
-    fn parse_arg(&self, arg: &str) -> Res {
+    fn parse_arg(&self, arg: &str) -> ParseResult {
         match FromStr::from_str(arg) {
             Some(x) => {
                 **self.cell.borrow_mut() = x;
-                return Ok(());
+                return Parsed;
             }
             None => {
-                return Err(format!("Bad value {}", arg));
+                return Error(format!("Bad value {}", arg));
             }
         }
     }
