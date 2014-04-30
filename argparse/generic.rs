@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::from_str::FromStr;
 
 use parser::Res;
 use action::Action;
@@ -6,10 +7,6 @@ use action::{TypedAction, IFlagAction, IArgAction};
 use action::{Flag, Single};
 
 mod action;
-
-pub trait ParseArgument {
-    fn parse(cell: &RefCell<&mut Self>, arg: &str) -> Res;
-}
 
 pub struct StoreConst<T>(T);
 
@@ -31,7 +28,7 @@ impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
     }
 }
 
-impl<T: 'static + ParseArgument> TypedAction<T> for Store<T> {
+impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
     fn bind<'x>(&self, cell: &'x RefCell<&'x mut T>) -> Action {
         return Single(~StoreAction { cell: cell });
     }
@@ -45,8 +42,16 @@ impl<'a, T: Copy> IFlagAction for StoreConstAction<'a, T> {
     }
 }
 
-impl<'a, T: ParseArgument> IArgAction for StoreAction<'a, T> {
+impl<'a, T: FromStr> IArgAction for StoreAction<'a, T> {
     fn parse_arg(&self, arg: &str) -> Res {
-        return ParseArgument::parse(self.cell, arg);
+        match FromStr::from_str(arg) {
+            Some(x) => {
+                **self.cell.borrow_mut() = x;
+                return Ok(());
+            }
+            None => {
+                return Err(format!("Bad value {}", arg));
+            }
+        }
     }
 }

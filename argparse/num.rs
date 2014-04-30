@@ -5,7 +5,6 @@ use parser::Res;
 use action::{TypedAction, Action};
 use action::IFlagAction;
 use action::Flag;
-use generic::ParseArgument;
 
 pub struct IncrBy<T>(T);
 
@@ -53,18 +52,3 @@ impl<'a, T: Sub<T, T> + Copy> IFlagAction for DecrByAction<'a, T> {
     }
 }
 
-impl ParseArgument for int {
-    fn parse(cell: &RefCell<&mut int>, arg: &str) -> Res {
-        match from_str_bytes_common(arg.as_bytes(), 10, true, true, true,
-            ExpDec, false, true)
-        {
-            Some(value) => {
-                **cell.borrow_mut() = value;
-                return Ok(());
-            }
-            None => {
-                return Err(format!("Bad numeric value \"{}\"", arg));
-            }
-        }
-    }
-}
