@@ -1,14 +1,18 @@
+use std::os;
+use std::io::IoResult;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::slice::Items;
-use std::os;
+use std::fmt::{Show, Formatter};
 
+use collections::dlist::DList;
+use collections::deque::Deque;
 use collections::hashmap::HashMap;
 
 use action::Action;
 use action::{ParseResult, Parsed, Exit, Error};
 use action::TypedAction;
-use action::{Flag, Single, Many};
+use action::{Flag, Single, Collect};
 use action::IArgAction;
 
 mod action;
@@ -17,6 +21,7 @@ enum ArgumentKind {
     Positional,
     ShortOption,
     LongOption,
+    Delimiter, // Barely "--"
 }
 
 impl ArgumentKind {
@@ -24,15 +29,17 @@ impl ArgumentKind {
         let mut iter = name.chars();
         let char1 = iter.next();
         let char2 = iter.next();
+        let char3 = iter.next();
         return match char1 {
-            Some('-') => {
-                match char2 {
-                    Some('-') => { LongOption } // --opts
-                    Some(_) => { ShortOption }  // -opts
-                    None => { Positional }  // single dash
-                }
-            }
-            Some(_) | None => { Positional }
+            Some('-') => match char2 {
+                Some('-') => match char3 {
+                        Some(_) => LongOption, // --opt
+                        None => Delimiter,  // just --
+                },
+                Some(_) => ShortOption,  // -opts
+                None => Positional,  // single dash
+            },
+            Some(_) | None => Positional,
         }
     }
 }
@@ -40,6 +47,15 @@ impl ArgumentKind {
 enum OptionName<'a> {
     Dash(~[&'a str]),
     Pos(&'a str),
+}
+
+impl<'a> Show for OptionName<'a> {
+    fn fmt(&self, fmt: &mut Formatter) -> IoResult<()> {
+        return match *self {
+            Dash(ref names) => names.fmt(fmt),
+            Pos(ref name) => name.fmt(fmt),
+        }
+    }
 }
 
 struct GenericOption<'a> {
@@ -50,6 +66,7 @@ struct GenericOption<'a> {
 
 pub struct Context<'a, 'b> {
     parser: &'a ArgumentParser<'b>,
+    positional_deque: DList<Rc<GenericOption<'b>>>,
     iter: Items<'a, ~str>,
 }
 
@@ -70,7 +87,29 @@ impl<'a, 'b> Context<'a, 'b> {
         }
     }
 
-    fn parse_long_option<'c>(&'c mut self, arg: &str) -> ParseResult {
+    fn parse_argument<'x>(&'x mut self, arg: &str) -> ParseResult {
+        match self.positional_deque.pop_front() {
+            None => match self.parser.last_argument {
+                None => {
+                    return Error(format!("Unexpected argument {}", arg));
+                }
+                Some(ref opt) => match opt.action {
+                    Collect(ref action) => {
+                        return action.parse_arg(arg);
+                    }
+                    _ => fail!(),
+                }
+            },
+            Some(ref opt) => match opt.action {
+                Single(ref action) => {
+                    return action.parse_arg(arg);
+                }
+                _ => fail!(),
+            },
+        }
+    }
+
+    fn parse_long_option(&mut self, arg: &str) -> ParseResult {
         let mut equals_iter = arg.splitn('=', 1);
         let optname = match equals_iter.next() {
             Some(value) => { value }
@@ -147,8 +186,12 @@ impl<'a, 'b> Context<'a, 'b> {
     {
         let mut ctx = Context {
             parser: parser,
+            positional_deque: DList::new(),
             iter: args.iter(),
         };
+        for arg in parser.arguments.iter() {
+            ctx.positional_deque.push_back(arg.clone());
+        }
         ctx.iter.next();  // Command name
         loop {
             let next = ctx.iter.next();
@@ -157,13 +200,27 @@ impl<'a, 'b> Context<'a, 'b> {
                 None => { break; }
             };
             let res = match ArgumentKind::check(*arg) {
-                Positional => { fail!() } //ctx.parse_argument(*arg) }
-                LongOption => { ctx.parse_long_option(*arg) }
-                ShortOption => { ctx.parse_short_options(*arg) }
+                Positional => ctx.parse_argument(*arg),
+                LongOption => ctx.parse_long_option(*arg),
+                ShortOption => ctx.parse_short_options(*arg),
+                Delimiter => break,
             };
             match res {
                 Parsed => continue,
                 _ => return res,
+            }
+        }
+
+        // Leftover positional arguments
+        loop {
+            let next = ctx.iter.next();
+            let arg = match next {
+                Some(arg) => { arg }
+                None => { break; }
+            };
+            match ctx.parse_argument(*arg) {
+                Parsed => continue,
+                x => return x,
             }
         }
         return Parsed;
@@ -189,7 +246,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         for nameptr in names.iter() {
             let name = *nameptr;
             match ArgumentKind::check(name) {
-                Positional => { fail!("Bad argument name {}", name); }
+                Positional|Delimiter => {
+                    fail!("Bad argument name {}", name);
+                }
                 LongOption => {
                     self.parser.long_options.insert(
                         name.to_str(), opt.clone());
@@ -206,21 +265,42 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         self.parser.options.push(opt);
         return self;
     }
-    /*
-    fn add_argument<'b>(&'b mut self, name: &'a str,
-        help: &'a str, action: Action<'a>) {
-        self.arguments.push(Argument {
-            name: name,
-            help: help,
-            action: action,
-        })
+
+    pub fn add_argument<'x>(&'x mut self, name: &'b str,
+        help: &'b str, action: ~TypedAction<T>) {
+        let act = action.bind(self.cell.clone());
+        match act {
+            Flag(_) => fail!("Flag arguments can't be positional"),
+            Collect(_) => {
+                match self.parser.last_argument {
+                    Some(ref y) => fail!(format!(
+                        "Option {} conflicts with option {}",
+                        name, y.name)),
+                    None => {},
+                }
+                let opt = Rc::new(GenericOption {
+                    name: Pos(name),
+                    help: help,
+                    action: act,
+                    });
+                self.parser.last_argument = Some(opt);
+            }
+            _ => {
+                let opt = Rc::new(GenericOption {
+                    name: Pos(name),
+                    help: help,
+                    action: act,
+                    });
+                self.parser.arguments.push(opt);
+            }
+        }
     }
-    */
 }
 
 pub struct ArgumentParser<'a> {
     priv options: ~[Rc<GenericOption<'a>>],
     priv arguments: ~[Rc<GenericOption<'a>>],
+    priv last_argument: Option<Rc<GenericOption<'a>>>,
     priv short_options: HashMap<char, Rc<GenericOption<'a>>>,
     priv long_options: HashMap<~str, Rc<GenericOption<'a>>>,
 }
@@ -232,6 +312,7 @@ impl<'a> ArgumentParser<'a> {
     pub fn new() -> ArgumentParser {
         return ArgumentParser {
             arguments: ~[],
+            last_argument: None,
             options: ~[],
             short_options: HashMap::new(),
             long_options: HashMap::new(),

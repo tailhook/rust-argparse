@@ -11,7 +11,7 @@ pub enum ParseResult {
 pub enum Action {
     Flag(~IFlagAction),
     Single(~IArgAction),
-    Many(~IArgsAction),
+    Collect(~ICollectAction),
 }
 
 pub trait TypedAction<T> {
@@ -26,6 +26,6 @@ pub trait IArgAction {
     fn parse_arg(&self, arg: &str) -> ParseResult;
 }
 
-pub trait IArgsAction {
-    fn parse_args(&self, args: ~[&str]) -> ParseResult;
+pub trait ICollectAction {
+    fn parse_arg(&self, arg: &str) -> ParseResult;
 }
