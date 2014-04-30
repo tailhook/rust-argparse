@@ -37,19 +37,19 @@ impl ArgumentKind {
     }
 }
 
-enum OptionName {
-    Dash(~[&'static str]),
-    Pos(&'static str),
+enum OptionName<'a> {
+    Dash(~[&'a str]),
+    Pos(&'a str),
 }
 
-struct GenericOption {
-    name: OptionName,
-    help: &'static str,
+struct GenericOption<'a> {
+    name: OptionName<'a>,
+    help: &'a str,
     action: Action,
 }
 
 pub struct Context<'a, 'b> {
-    parser: &'a ArgumentParser<'a>,
+    parser: &'a ArgumentParser<'b>,
     iter: Items<'a, ~str>,
 }
 
@@ -170,15 +170,15 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-pub struct Ref<'a, T> {
+pub struct Ref<'a, 'b, T> {
     priv cell: Rc<RefCell<&'a mut T>>,
-    priv parser: &'a mut ArgumentParser<'a>,
+    priv parser: &'a mut ArgumentParser<'b>,
 }
 
-impl<'a, T> Ref<'a, T> {
+impl<'a, 'b, T> Ref<'a, 'b, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: ~[&'static str],
-        help: &'static str, action: ~TypedAction<T>) -> &'x mut Ref<'a, T>
+    pub fn add_option<'x>(&'x mut self, names: ~[&'b str],
+        help: &'b str, action: ~TypedAction<T>) -> &'x mut Ref<'a, 'b, T>
     {
         let opt = Rc::new(GenericOption {
             name: Dash(names.clone()),
@@ -219,10 +219,10 @@ impl<'a, T> Ref<'a, T> {
 }
 
 pub struct ArgumentParser<'a> {
-    priv options: ~[Rc<GenericOption>],
-    priv arguments: ~[Rc<GenericOption>],
-    priv short_options: HashMap<char, Rc<GenericOption>>,
-    priv long_options: HashMap<~str, Rc<GenericOption>>,
+    priv options: ~[Rc<GenericOption<'a>>],
+    priv arguments: ~[Rc<GenericOption<'a>>],
+    priv short_options: HashMap<char, Rc<GenericOption<'a>>>,
+    priv long_options: HashMap<~str, Rc<GenericOption<'a>>>,
 }
 
 
@@ -239,7 +239,7 @@ impl<'a> ArgumentParser<'a> {
     }
 
     pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
-        -> ~Ref<'x, T>
+        -> ~Ref<'x, 'a, T>
     {
         return ~Ref {
             cell: Rc::new(RefCell::new(val)),
