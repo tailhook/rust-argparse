@@ -72,3 +72,15 @@ fn test_int() {
     ap.parse_list(~[~"./argparse_test", ~"-s333", ~"--set=123"]);
     assert!(val == 123);
 }
+
+#[test]
+fn test_i16() {
+    let mut val = 0;
+    let mut ap = ArgumentParser::new();
+    ap.refer(&RefCell::new(&mut val))
+      .add_option(~["-s", "--set"],
+        "Set integer value",
+        ~Store::<i16>);
+    ap.parse_list(~[~"./argparse_test", ~"-s", ~"124"]);
+    assert_eq!(val, 124);
+}

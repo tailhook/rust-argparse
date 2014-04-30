@@ -17,8 +17,10 @@ mod bool;
 mod num;
 
 
-
 mod test_parser;
 mod test_bool;
 mod test_int;
+mod test_float;
+mod test_str;
+mod test_enum;
 
