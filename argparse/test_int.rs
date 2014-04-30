@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use parser::ArgumentParser;
 use num::{IncrBy,DecrBy};
 use generic::Store;
@@ -9,7 +7,7 @@ use test_parser::{check_ok,check_err};
 fn incr_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-i", "--incr"],
         "Increment value",
         ~IncrBy(1));
@@ -26,7 +24,7 @@ fn incr_int() {
 fn test_decr_int() {
     let mut val = 5;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-d", "--decr"],
         "Decrement value",
         ~DecrBy(1));
@@ -44,7 +42,7 @@ fn test_incr_decr() {
     let mut val = 0;
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&RefCell::new(&mut val))
+        ap.refer(&mut val)
           .add_option(~["-d", "--decr"],
             "Decrement value",
             ~DecrBy(1))
@@ -62,7 +60,7 @@ fn test_incr_decr() {
 fn test_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<int>);
@@ -81,7 +79,7 @@ fn test_int() {
 fn test_i16() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<i16>);

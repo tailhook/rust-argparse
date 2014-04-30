@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::from_str::FromStr;
 
 use parser::ArgumentParser;
@@ -25,7 +24,7 @@ impl FromStr for Greeting {
 fn test_parse_enum() {
     let mut val = NoGreeting;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-g"],
         "Greeting",
         ~Store::<Greeting>);

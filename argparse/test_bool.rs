@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use parser::ArgumentParser;
 use generic::Store;
 use bool::{StoreTrue, StoreFalse};
@@ -9,7 +7,7 @@ use test_parser::{check_ok,check_err};
 fn test_store_true() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut verbose))
+    ap.refer(&mut verbose)
       .add_option(~["-t", "--true"],
         "Store true action",
         ~StoreTrue);
@@ -24,7 +22,7 @@ fn test_store_true() {
 fn test_store_false() {
     let mut verbose = true;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut verbose))
+    ap.refer(&mut verbose)
       .add_option(~["-f", "--false"],
         "Store false action",
         ~StoreFalse);
@@ -39,7 +37,7 @@ fn test_store_false() {
 fn test_bool() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut verbose))
+    ap.refer(&mut verbose)
       .add_option(~["-f", "--false"],
         "Store false action",
         ~StoreFalse)
@@ -66,7 +64,7 @@ fn test_bool() {
 fn test_set_bool() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut verbose))
+    ap.refer(&mut verbose)
       .add_option(~["-s", "--set"],
         "Set boolean value",
         ~Store::<bool>);

@@ -242,7 +242,11 @@ impl<'a> ArgumentParser<'a> {
         -> ~Ref<'x, T>
     {
         return ~Ref {
+<<<<<<< Updated upstream
+            cell: &RefCell::new(val),
+=======
             cell: Rc::new(RefCell::new(val)),
+>>>>>>> Stashed changes
             parser: self,
         };
     }

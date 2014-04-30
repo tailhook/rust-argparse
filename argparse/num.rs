@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::rc::Rc;
 
 use action::{TypedAction, Action};
 use action::{ParseResult, Parsed};
@@ -11,23 +12,23 @@ pub struct DecrBy<T>(T);
 
 pub struct IncrByAction<'a, T> {
     delta: T,
-    cell: &'a RefCell<&'a mut T>,
+    cell: Rc<RefCell<&'a mut T>>,
 }
 
 pub struct DecrByAction<'a, T> {
     delta: T,
-    cell: &'a RefCell<&'a mut T>,
+    cell: Rc<RefCell<&'a mut T>>,
 }
 
 impl<T: 'static + Add<T, T> + Copy> TypedAction<T> for IncrBy<T> {
-    fn bind<'x>(&self, cell: &'x RefCell<&'x mut T>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let IncrBy(delta) = *self;
         return Flag(~IncrByAction { cell: cell, delta: delta });
     }
 }
 
 impl<T: 'static + Sub<T, T> + Copy> TypedAction<T> for DecrBy<T> {
-    fn bind<'x>(&self, cell: &'x RefCell<&'x mut T>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let DecrBy(delta) = *self;
         return Flag(~DecrByAction { cell: cell, delta: delta });
     }

@@ -1,5 +1,6 @@
 use std::cell::RefCell;
 use std::from_str::FromStr;
+use std::rc::Rc;
 
 use action::Action;
 use action::{TypedAction, IFlagAction, IArgAction};
@@ -14,22 +15,22 @@ pub struct Store<T>;
 
 pub struct StoreConstAction<'a, T> {
     value: T,
-    cell: &'a RefCell<&'a mut T>,
+    cell: Rc<RefCell<&'a mut T>>,
 }
 
 pub struct StoreAction<'a, T> {
-    cell: &'a RefCell<&'a mut T>,
+    cell: Rc<RefCell<&'a mut T>>,
 }
 
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
-    fn bind<'x>(&self, cell: &'x RefCell<&'x mut T>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let StoreConst(val) = *self;
         return Flag(~StoreConstAction { cell: cell, value: val });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
-    fn bind<'x>(&self, cell: &'x RefCell<&'x mut T>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         return Single(~StoreAction { cell: cell });
     }
 }

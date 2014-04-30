@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use parser::ArgumentParser;
 use generic::Store;
 use test_parser::{check_ok,check_err};
@@ -8,7 +6,7 @@ use test_parser::{check_ok,check_err};
 fn test_str() {
     let mut val: ~str = ~"";
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-s", "--set"],
         "Set string value",
         ~Store::<~str>);

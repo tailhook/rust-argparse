@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::rc::Rc;
 
 pub enum ParseResult {
     Parsed,
@@ -14,7 +15,7 @@ pub enum Action {
 }
 
 pub trait TypedAction<T> {
-    fn bind<'x>(&self, &'x RefCell<&'x mut T>) -> Action;
+    fn bind<'x>(&self, Rc<RefCell<&'x mut T>>) -> Action;
 }
 
 pub trait IFlagAction {

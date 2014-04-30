@@ -4,7 +4,7 @@
 extern crate collections;
 extern crate arena;
 
-pub use parser::ArgumentParser;
+pub use parser::{ArgumentParser, Ref};
 pub use bool::{StoreTrue, StoreFalse, StoreBool};
 pub use num::{IncrBy, DecrBy};
 pub use generic::{Store, StoreConst};

@@ -1,5 +1,3 @@
-use std::cell::RefCell;
-
 use parser::ArgumentParser;
 use num::{IncrBy,DecrBy};
 use generic::Store;
@@ -10,7 +8,7 @@ fn test_incr_decr() {
     let mut val = 0.5;
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&RefCell::new(&mut val))
+        ap.refer(&mut val)
           .add_option(~["-d", "--decr"],
             "Decrement value",
             ~DecrBy(0.25))
@@ -28,7 +26,7 @@ fn test_incr_decr() {
 fn test_float() {
     let mut val = 0.1;
     let mut ap = ArgumentParser::new();
-    ap.refer(&RefCell::new(&mut val))
+    ap.refer(&mut val)
       .add_option(~["-s", "--set"],
         "Set integer value",
         ~Store::<f64>);
