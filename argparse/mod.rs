@@ -23,4 +23,5 @@ mod test_int;
 mod test_float;
 mod test_str;
 mod test_enum;
+mod test_pos;
 
