@@ -1,5 +1,4 @@
 use parser::ArgumentParser;
-use generic::Store;
 
 #[cfg(test)]
 pub fn check_ok(res: Result<(), int>) {

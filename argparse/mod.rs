@@ -7,7 +7,7 @@ extern crate arena;
 pub use parser::{ArgumentParser, Ref};
 pub use bool::{StoreTrue, StoreFalse, StoreBool};
 pub use num::{IncrBy, DecrBy};
-pub use generic::{Store, StoreConst};
+pub use generic::{Store, StoreConst, List, Collect};
 
 mod generic;
 mod parser;
@@ -24,4 +24,5 @@ mod test_float;
 mod test_str;
 mod test_enum;
 mod test_pos;
+mod test_many;
 
