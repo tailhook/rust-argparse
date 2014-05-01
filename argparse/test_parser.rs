@@ -46,6 +46,6 @@ fn test_no_arg() {
     check_ok(&ap, ~[~"./argparse_test"]);
     check_err(&ap, ~[~"./argparse_test", ~"a"]);
     check_err(&ap, ~[~"./argparse_test", ~"-a"]);
-    check_ok(&ap, ~[~"./argparse_test", ~"--an-option"]);
+    check_err(&ap, ~[~"./argparse_test", ~"--an-option"]);
 }
 
