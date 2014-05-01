@@ -7,6 +7,7 @@ use std::slice::Items;
 use std::fmt::{Show, Formatter};
 use std::hash::Hash;
 use std::hash::sip::SipState;
+use std::ascii::StrAsciiExt;
 
 use collections::hashmap::HashMap;
 
@@ -16,7 +17,6 @@ use action::TypedAction;
 use action::{Flag, Single, Push, Many};
 use action::IArgAction;
 
-mod action;
 
 enum ArgumentKind {
     Positional,
@@ -394,6 +394,15 @@ impl<'a> ArgumentParser<'a> {
         };
     }
 
+    pub fn print_help(&self, name: &str, writer: &mut Writer) -> IoResult<()> {
+        return HelpFormatter::print_usage(self, name, writer);
+    }
+
+    pub fn print_usage(&self, name: &str, writer: &mut Writer) -> IoResult<()>
+    {
+        return HelpFormatter::print_help(self, name, writer);
+    }
+
     pub fn parse_list(&self, args: ~[~str]) -> Result<(), int> {
         match Context::parse(self, args) {
             Parsed => return Ok(()),
@@ -414,3 +423,67 @@ impl<'a> ArgumentParser<'a> {
     }
 }
 
+pub struct HelpFormatter<'a, 'b> {
+    name: &'a str,
+    parser: &'a ArgumentParser<'b>,
+    buf: &'a mut Writer,
+}
+
+impl<'a, 'b> HelpFormatter<'a, 'b> {
+    pub fn print_usage(parser: &ArgumentParser, name: &str, writer: &mut Writer)
+        -> IoResult<()>
+    {
+        return HelpFormatter { parser: parser, name: name, buf: writer }
+            .write_usage();
+    }
+
+    pub fn print_help(parser: &ArgumentParser, name: &str, writer: &mut Writer)
+        -> IoResult<()>
+    {
+        return HelpFormatter { parser: parser, name: name, buf: writer }
+            .write_help();
+    }
+
+    fn write_help(&mut self) -> IoResult<()> {
+        try!(self.write_usage());
+        return Ok(());
+    }
+
+    fn write_usage(&mut self) -> IoResult<()> {
+        try!(self.buf.write_str("Usage:\n    "));
+        try!(self.buf.write(self.name.as_bytes()));
+        if self.parser.options.len() != 0 {
+            if self.parser.short_options.len() > 0
+                || self.parser.long_options.len() > 0
+            {
+                try!(self.buf.write_str(" [options]"));
+            }
+            for opt in self.parser.arguments.iter() {
+                match opt.name {
+                    Pos(name) => {
+                        try!(self.buf.write_str(" ["));
+                        try!(self.buf.write_str(name.to_ascii_upper()));
+                        try!(self.buf.write_char(']'));
+                    }
+                    _ => {}
+                }
+            }
+            match self.parser.catchall_argument {
+                Some(ref opt) => {
+                    match opt.name {
+                        Pos(name) => {
+                            try!(self.buf.write_str(" ["));
+                            try!(self.buf.write_str(name.to_ascii_upper()));
+                            try!(self.buf.write_str(" ...]"));
+                        }
+                        _ => {}
+                    }
+                }
+                None => {}
+            }
+        }
+        try!(self.buf.write_char('\n'));
+        return Ok(());
+    }
+
+}

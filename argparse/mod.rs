@@ -12,10 +12,10 @@ pub use generic::{Store, StoreOption, StoreConst, List, Collect};
 mod generic;
 mod parser;
 mod action;
+mod help;
 
 mod bool;
 mod num;
-
 
 mod test_parser;
 mod test_bool;
@@ -26,4 +26,5 @@ mod test_enum;
 mod test_pos;
 mod test_many;
 mod test_optional;
+mod test_usage;
 
