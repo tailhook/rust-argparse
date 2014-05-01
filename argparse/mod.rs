@@ -27,3 +27,4 @@ mod test_pos;
 mod test_many;
 mod test_optional;
 mod test_usage;
+mod test_help;

@@ -17,6 +17,7 @@ use action::{ParseResult, Parsed, Exit, Error};
 use action::TypedAction;
 use action::{Flag, Single, Push, Many};
 use action::IArgAction;
+use help::wrap_text;
 
 
 enum ArgumentKind {
@@ -365,6 +366,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
 }
 
 pub struct ArgumentParser<'a> {
+    description: &'a str,
     priv options: ~[Rc<GenericOption<'a>>],
     priv arguments: ~[Rc<GenericOption<'a>>],
     priv catchall_argument: Option<Rc<GenericOption<'a>>>,
@@ -378,6 +380,7 @@ impl<'a> ArgumentParser<'a> {
 
     pub fn new() -> ArgumentParser {
         return ArgumentParser {
+            description: "",
             arguments: ~[],
             catchall_argument: None,
             options: ~[],
@@ -395,13 +398,17 @@ impl<'a> ArgumentParser<'a> {
         };
     }
 
+    pub fn set_description(&mut self, descr: &'a str) {
+        self.description = descr;
+    }
+
     pub fn print_help(&self, name: &str, writer: &mut Writer) -> IoResult<()> {
-        return HelpFormatter::print_usage(self, name, writer);
+        return HelpFormatter::print_help(self, name, writer);
     }
 
     pub fn print_usage(&self, name: &str, writer: &mut Writer) -> IoResult<()>
     {
-        return HelpFormatter::print_help(self, name, writer);
+        return HelpFormatter::print_usage(self, name, writer);
     }
 
     pub fn parse(&self, args: ~[~str],
@@ -451,6 +458,11 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
 
     fn write_help(&mut self) -> IoResult<()> {
         try!(self.write_usage());
+        try!(self.buf.write_char('\n'));
+        if self.parser.description.len() > 0 {
+            try!(wrap_text(self.buf, self.parser.description, 79, 0, 0));
+            try!(self.buf.write_char('\n'));
+        }
         return Ok(());
     }
 
