@@ -1,5 +1,6 @@
 use std::os;
 use std::io::IoResult;
+use std::io::stdio::{stdout, stderr};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::iter::Peekable;
@@ -403,23 +404,27 @@ impl<'a> ArgumentParser<'a> {
         return HelpFormatter::print_help(self, name, writer);
     }
 
-    pub fn parse_list(&self, args: ~[~str]) -> Result<(), int> {
+    pub fn parse(&self, args: ~[~str],
+        stdout: &mut Writer, stderr: &mut Writer)
+        -> Result<(), int>
+    {
         match Context::parse(self, args) {
             Parsed => return Ok(()),
             Exit => return Err(0),
-            Error(val) => {
-                self.error(args[0], val);
+            Error(message) => {
+                self.error(args[0], message, stderr);
                 return Err(2);
             }
         }
     }
 
-    fn error(&self, command: &str, message: &str) {
-        println!("{}: {}", command, message);
+    pub fn error(&self, command: &str, message: &str, writer: &mut Writer) {
+        self.print_usage(command, writer).unwrap();
+        writer.write_str(format!("{}: {}\n", command, message)).unwrap();
     }
 
     pub fn parse_args(&self) -> Result<(), int> {
-        return self.parse_list(os::args());
+        return self.parse(os::args(), &mut stdout(), &mut stderr());
     }
 }
 

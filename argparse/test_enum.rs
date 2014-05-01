@@ -27,11 +27,11 @@ fn test_parse_enum() {
     ap.refer(&mut val)
       .add_option(~["-g"], ~Store::<Greeting>,
         "Greeting");
-    check_ok(ap.parse_list(~[~"./argparse_test"]));
+    check_ok(&ap, ~[~"./argparse_test"]);
     assert!(match val { NoGreeting => true, _ => false });
-    check_ok(ap.parse_list(~[~"./argparse_test", ~"-ghello"]));
+    check_ok(&ap, ~[~"./argparse_test", ~"-ghello"]);
     assert!(match val { Hello => true, _ => false });
-    check_ok(ap.parse_list(~[~"./argparse_test", ~"-ghi"]));
+    check_ok(&ap, ~[~"./argparse_test", ~"-ghi"]);
     assert!(match val { Hi => true, _ => false });
-    check_err(ap.parse_list(~[~"./argparse_test", ~"-ghell"]));
+    check_err(&ap, ~[~"./argparse_test", ~"-ghell"]);
 }

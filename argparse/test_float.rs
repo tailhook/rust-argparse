@@ -14,8 +14,8 @@ fn test_incr_decr() {
           .add_option(~["-i", "--incr"], ~IncrBy(0.5),
             "Increment value");
         assert!(val == 0.5);
-        check_ok(ap.parse_list(~[~"./argparse_test",
-            ~"-iiddd", ~"--incr", ~"-iii"]));
+        check_ok(&ap, ~[~"./argparse_test",
+            ~"-iiddd", ~"--incr", ~"-iii"]);
     }
     assert_eq!(val, 2.75);
 }
@@ -27,7 +27,7 @@ fn test_float() {
     ap.refer(&mut val)
       .add_option(~["-s", "--set"], ~Store::<f64>,
         "Set integer value");
-    check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"15.125"]));
+    check_ok(&ap, ~[~"./argparse_test", ~"-s", ~"15.125"]);
     assert_eq!(val, 15.125);
-    check_err(ap.parse_list(~[~"./argparse_test", ~"-s", ~"test"]));
+    check_err(&ap, ~[~"./argparse_test", ~"-s", ~"test"]);
 }
