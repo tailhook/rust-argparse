@@ -301,7 +301,8 @@ pub struct Ref<'a, 'b, T> {
 impl<'a, 'b, T> Ref<'a, 'b, T> {
 
     pub fn add_option<'x>(&'x mut self, names: ~[&'b str],
-        help: &'b str, action: ~TypedAction<T>) -> &'x mut Ref<'a, 'b, T>
+        action: ~TypedAction<T>, help: &'b str)
+        -> &'x mut Ref<'a, 'b, T>
     {
         let opt = Rc::new(GenericOption {
             id: self.parser.options.len(),
@@ -334,7 +335,8 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn add_argument<'x>(&'x mut self, name: &'b str,
-        help: &'b str, action: ~TypedAction<T>) {
+        action: ~TypedAction<T>, help: &'b str)
+    {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericOption {
             id: self.parser.options.len(),

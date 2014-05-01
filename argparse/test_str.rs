@@ -7,9 +7,8 @@ fn test_str() {
     let mut val: ~str = ~"";
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-s", "--set"],
-        "Set string value",
-        ~Store::<~str>);
+      .add_option(~["-s", "--set"], ~Store::<~str>,
+        "Set string value");
     check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]));
     assert!(val.eq(&~"10"));
     check_ok(ap.parse_list(~[~"./argparse_test", ~"--set", ~"value"]));

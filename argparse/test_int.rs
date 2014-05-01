@@ -8,9 +8,8 @@ fn incr_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-i", "--incr"],
-        "Increment value",
-        ~IncrBy(1));
+      .add_option(~["-i", "--incr"], ~IncrBy(1),
+        "Increment value");
     assert!(val == 0);
     check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(val == 0);
@@ -25,9 +24,8 @@ fn test_decr_int() {
     let mut val = 5;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-d", "--decr"],
-        "Decrement value",
-        ~DecrBy(1));
+      .add_option(~["-d", "--decr"], ~DecrBy(1),
+        "Decrement value");
     assert!(val == 5);
     check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(val == 5);
@@ -43,12 +41,10 @@ fn test_incr_decr() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(~["-d", "--decr"],
-            "Decrement value",
-            ~DecrBy(1))
-          .add_option(~["-i", "--incr"],
-            "Increment value",
-            ~IncrBy(1));
+          .add_option(~["-d", "--decr"], ~DecrBy(1),
+            "Decrement value")
+          .add_option(~["-i", "--incr"], ~IncrBy(1),
+            "Increment value");
         assert!(val == 0);
         check_ok(ap.parse_list(~[~"./argparse_test",
             ~"-iiddd", ~"--incr", ~"-iii"]));
@@ -61,9 +57,8 @@ fn test_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-s", "--set"],
-        "Set integer value",
-        ~Store::<int>);
+      .add_option(~["-s", "--set"], ~Store::<int>,
+        "Set integer value");
     check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"10"]));
     assert!(val == 10);
     check_ok(ap.parse_list(~[~"./argparse_test", ~"--set", ~"99"]));
@@ -80,9 +75,8 @@ fn test_i16() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-s", "--set"],
-        "Set integer value",
-        ~Store::<i16>);
+      .add_option(~["-s", "--set"], ~Store::<i16>,
+        "Set integer value");
     check_ok(ap.parse_list(~[~"./argparse_test", ~"-s", ~"124"]));
     assert_eq!(val, 124);
     check_err(ap.parse_list(~[~"./argparse_test", ~"-s", ~"1000000"]));

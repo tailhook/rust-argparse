@@ -25,9 +25,8 @@ fn test_parse_enum() {
     let mut val = NoGreeting;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-g"],
-        "Greeting",
-        ~Store::<Greeting>);
+      .add_option(~["-g"], ~Store::<Greeting>,
+        "Greeting");
     check_ok(ap.parse_list(~[~"./argparse_test"]));
     assert!(match val { NoGreeting => true, _ => false });
     check_ok(ap.parse_list(~[~"./argparse_test", ~"-ghello"]));
