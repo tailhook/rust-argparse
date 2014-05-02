@@ -1,13 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use action::Action;
-use action::TypedAction;
-use action::Flag;
-use generic::StoreConstAction;
-use generic::Store;
-
-mod generic;
+use super::action::Action;
+use super::action::TypedAction;
+use super::action::Flag;
+use super::generic::StoreConstAction;
+use super::generic::Store;
 
 pub struct StoreTrue;
 pub struct StoreFalse;

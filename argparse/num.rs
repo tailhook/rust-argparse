@@ -1,10 +1,10 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use action::{TypedAction, Action};
-use action::{ParseResult, Parsed};
-use action::IFlagAction;
-use action::Flag;
+use super::action::{TypedAction, Action};
+use super::action::{ParseResult, Parsed};
+use super::action::IFlagAction;
+use super::action::Flag;
 
 pub struct IncrBy<T>(T);
 

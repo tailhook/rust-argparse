@@ -13,12 +13,12 @@ use std::ascii::StrAsciiExt;
 use collections::hashmap::HashMap;
 use collections::hashmap::HashSet;
 
-use action::Action;
-use action::{ParseResult, Parsed, Exit, Error};
-use action::TypedAction;
-use action::{Flag, Single, Push, Many};
-use action::IArgAction;
-use help::wrap_text;
+use super::action::Action;
+use super::action::{ParseResult, Parsed, Help, Exit, Error};
+use super::action::TypedAction;
+use super::action::{Flag, Single, Push, Many};
+use super::action::IArgAction;
+use super::help::wrap_text;
 
 
 static OPTION_WIDTH: uint = 24;
@@ -506,6 +506,10 @@ impl<'parser> ArgumentParser<'parser> {
         match Context::parse(self, args) {
             Parsed => return Ok(()),
             Exit => return Err(0),
+            Help => {
+                self.print_help(args[0], stdout).unwrap();
+                return Err(0);
+            }
             Error(message) => {
                 self.error(args[0], message, stderr);
                 return Err(2);

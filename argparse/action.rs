@@ -3,6 +3,7 @@ use std::rc::Rc;
 
 pub enum ParseResult {
     Parsed,
+    Help,
     Exit,
     Error(~str),
 }

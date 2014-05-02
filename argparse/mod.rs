@@ -4,27 +4,27 @@
 extern crate collections;
 extern crate arena;
 
-pub use parser::{ArgumentParser, Ref};
-pub use bool::{StoreTrue, StoreFalse, StoreBool};
-pub use num::{IncrBy, DecrBy};
-pub use generic::{Store, StoreOption, StoreConst, List, Collect};
+pub use self::parser::{ArgumentParser, Ref};
+pub use self::bool::{StoreTrue, StoreFalse, StoreBool};
+pub use self::num::{IncrBy, DecrBy};
+pub use self::generic::{Store, StoreOption, StoreConst, List, Collect};
 
+pub mod action;
 mod generic;
 mod parser;
-mod action;
 mod help;
 
 mod bool;
 mod num;
 
-mod test_parser;
-mod test_bool;
-mod test_int;
-mod test_float;
-mod test_str;
-mod test_enum;
-mod test_pos;
-mod test_many;
-mod test_optional;
-mod test_usage;
-mod test_help;
+#[cfg(test)] mod test_parser;
+#[cfg(test)] mod test_bool;
+#[cfg(test)] mod test_int;
+#[cfg(test)] mod test_float;
+#[cfg(test)] mod test_str;
+#[cfg(test)] mod test_enum;
+#[cfg(test)] mod test_pos;
+#[cfg(test)] mod test_many;
+#[cfg(test)] mod test_optional;
+#[cfg(test)] mod test_usage;
+#[cfg(test)] mod test_help;

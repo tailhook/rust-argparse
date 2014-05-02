@@ -2,10 +2,10 @@ use std::cell::RefCell;
 use std::from_str::FromStr;
 use std::rc::Rc;
 
-use action::Action;
-use action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
-use action::{ParseResult, Parsed, Error};
-use action::{Flag, Single, Push, Many};
+use super::action::Action;
+use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
+use super::action::{ParseResult, Parsed, Error};
+use super::action::{Flag, Single, Push, Many};
 
 mod action;
 

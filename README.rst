@@ -23,8 +23,7 @@ The following code is a simple Rust program with command-line arguments:
 
     use std::os;
 
-    use argparse::{ArgumentParser, cell, StoreTrue, SetStr};
-
+    use argparse::{ArgumentParser, StoreTrue, Store};
 
     fn main() {
         let mut verbose = false;
@@ -32,15 +31,19 @@ The following code is a simple Rust program with command-line arguments:
 
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
-        ap.add_option(~["-v", "--verbose"],
-            "Be verbose",
-            StoreTrue(cell(&mut verbose)));
-        ap.add_option(~["--name"], "",
-            "Name for the greeting",
-            SetStr(cell(&mut name)));
-        ap.parse_args();
+        ap.refer(&mut verbose).add_option(~["-v", "--verbose"], ~StoreTrue,
+            "Be verbose");
+        ap.refer(&mut name).add_option(~["--name"], ~Store::<~str>,
+            "Name for the greeting");
+        match ap.parse_args() {
+            Ok(()) => {}
+            Err(x) => {
+                os::set_exit_status(x);
+                return;
+            }
+        }
 
-        if(verbose) {
+        if verbose {
             println!("name is {}", name);
         }
         println!("Hello {}!", name);
@@ -51,7 +54,7 @@ what we have now::
 
     $ rustc greeting.rs
     $ ./greeting -h
-    usage: ./greeting [-h] [-v|--verbose] [--name NAME]
+    Usage: ./greeting [-h] [-v|--verbose] [--name NAME]
 
     Greet somebody.
 
