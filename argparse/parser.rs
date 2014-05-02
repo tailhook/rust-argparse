@@ -11,6 +11,7 @@ use std::hash::sip::SipState;
 use std::ascii::StrAsciiExt;
 
 use collections::hashmap::HashMap;
+use collections::hashmap::HashSet;
 
 use action::Action;
 use action::{ParseResult, Parsed, Exit, Error};
@@ -63,6 +64,7 @@ impl<'a> Show for OptionName<'a> {
 
 struct GenericOption<'a> {
     id: uint,
+    varid: uint,
     name: OptionName<'a>,
     help: &'a str,
     action: Action,
@@ -73,18 +75,41 @@ impl<'a> Hash for GenericOption<'a> {
         state.write_uint(self.id).unwrap();
     }
 }
+
 impl<'a> Eq for GenericOption<'a> {
     fn eq(&self, other: &GenericOption<'a>) -> bool {
         return self.id == other.id;
     }
 }
+
 impl<'a> TotalEq for GenericOption<'a> {}
 
-pub struct Context<'a, 'b> {
-    parser: &'a ArgumentParser<'b>,
-    options: HashMap<Rc<GenericOption<'b>>, Vec<&'a str>>,
-    arguments: Vec<&'a str>,
-    iter: Peekable<&'a ~str, Items<'a, ~str>>,
+pub struct Var<'parser> {
+    priv id: uint,
+    priv metavar: &'parser str,
+    priv required: bool,
+}
+
+impl<'parser> Hash for Var<'parser> {
+    fn hash(&self, state: &mut SipState) {
+        state.write_uint(self.id).unwrap();
+    }
+}
+
+impl<'parser> Eq for Var<'parser> {
+    fn eq(&self, other: &Var<'parser>) -> bool {
+        return self.id == other.id;
+    }
+}
+
+impl<'a> TotalEq for Var<'a> {}
+
+pub struct Context<'ctx, 'parser> {
+    parser: &'ctx ArgumentParser<'parser>,
+    set_vars: HashSet<Rc<Var<'parser>>>,
+    list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
+    arguments: Vec<&'ctx str>,
+    iter: Peekable<&'ctx ~str, Items<'ctx, ~str>>,
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -109,16 +134,21 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
             },
         };
-        let vec = self.options.find_or_insert(opt.clone(), Vec::new());
-        vec.push(value);
+        self.set_vars.insert(self.parser.vars[opt.varid].clone());
         match opt.action {
             Single(ref action) => {
                 return action.parse_arg(value);
             }
             Push(_) => {
+                let vec = self.list_options.find_or_insert(
+                    opt.clone(), Vec::new());
+                vec.push(value);
                 return Parsed;
             }
             Many(_) => {
+                let vec = self.list_options.find_or_insert(
+                    opt.clone(), Vec::new());
+                vec.push(value);
                 match optarg {
                     Some(_) => return Parsed,
                     _ => {}
@@ -156,8 +186,8 @@ impl<'a, 'b> Context<'a, 'b> {
                                     optname));
                             }
                             None => {
-                                self.options.find_or_insert(opt.clone(),
-                                    Vec::new()).push(arg);
+                                self.set_vars.insert(
+                                    self.parser.vars[opt.varid].clone());
                                 return action.parse_flag();
                             }
                         }
@@ -184,7 +214,11 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
             };
             let res = match opt.action {
-                Flag(ref action) => action.parse_flag(),
+                Flag(ref action) => {
+                    self.set_vars.insert(
+                        self.parser.vars[opt.varid].clone());
+                    action.parse_flag()
+                }
                 Single(_) | Push(_) | Many(_) => {
                     let value;
                     if idx + 1 < arg.len() {
@@ -213,9 +247,12 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut ctx = Context {
             parser: parser,
             iter: args.iter().peekable(),
-            options: HashMap::new(),
+            set_vars: HashSet::new(),
+            list_options: HashMap::new(),
             arguments: Vec::new(),
         };
+
+        // Parsing options, postponing positional arguments
         ctx.iter.next();  // Command name
         loop {
             let next = ctx.iter.next();
@@ -245,26 +282,37 @@ impl<'a, 'b> Context<'a, 'b> {
             }
         }
 
+        // Parse positional arguments
         let mut pargs = ctx.parser.arguments.iter();
         for arg in ctx.arguments.iter() {
-            let opt = match pargs.next() {
-                Some(opt) => opt,
-                None => match ctx.parser.catchall_argument {
-                    Some(ref opt) => opt,
-                    None => return Error(format!(
-                        "Unexpected argument {}", arg)),
-                }
-            };
-            let res = match opt.action {
-                Single(ref act) => match ctx.options.find(opt) {
-                    Some(_) => continue,  // Option is already with --opt
-                    None => {
-                        ctx.options.insert(opt.clone(), vec!(*arg));
-                        act.parse_arg(*arg)
+            let mut opt;
+            loop {
+                match pargs.next() {
+                    Some(option) => {
+                        if ctx.set_vars.contains(&ctx.parser.vars[option.varid]) {
+                            continue;
+                        }
+                        opt = option;
+                        break;
                     }
+                    None => match ctx.parser.catchall_argument {
+                        Some(ref option) => {
+                            opt = option;
+                            break;
+                        }
+                        None => return Error(format!(
+                            "Unexpected argument {}", arg)),
+                    }
+                };
+            }
+            let res = match opt.action {
+                Single(ref act) => {
+                    ctx.set_vars.insert(
+                        ctx.parser.vars[opt.varid].clone());
+                    act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
-                    ctx.options.find_or_insert(
+                    ctx.list_options.find_or_insert(
                         opt.clone(), Vec::new()).push(*arg);
                     Parsed
                 },
@@ -275,29 +323,28 @@ impl<'a, 'b> Context<'a, 'b> {
                 _ => return res,
             }
         }
-        for opt in ctx.parser.options.iter() {
-            let res;
+
+        // Parse list_arguments, which were collected before
+        for (opt, lst) in ctx.list_options.iter() {
             match opt.action {
-                Many(ref action) | Push(ref action) => {
-                    res = match ctx.options.find(opt) {
-                        Some(lst) => action.parse_args(lst.as_slice()),
-                        None => action.parse_args(&[]),
-                    };
+                Push(ref act) | Many(ref act) => {
+                    let res = act.parse_args(lst.as_slice());
+                    match res {
+                        Parsed => continue,
+                        _ => return res,
+                    }
                 }
-                _ => continue, // No postprocessing needed
-            };
-            match res {
-                Parsed => continue,
-                _ => return res,
+                _ => fail!(),
             }
         }
         return Parsed;
     }
 }
 
-pub struct Ref<'a, 'b, T> {
-    priv cell: Rc<RefCell<&'a mut T>>,
-    priv parser: &'a mut ArgumentParser<'b>,
+pub struct Ref<'refer, 'parser, T> {
+    priv cell: Rc<RefCell<&'refer mut T>>,
+    priv varid: uint,
+    priv parser: &'refer mut ArgumentParser<'parser>,
 }
 
 impl<'a, 'b, T> Ref<'a, 'b, T> {
@@ -308,6 +355,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     {
         let opt = Rc::new(GenericOption {
             id: self.parser.options.len(),
+            varid: self.varid,
             name: Dash(names.clone()),
             help: help,
             action: action.bind(self.cell.clone()),
@@ -342,6 +390,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericOption {
             id: self.parser.options.len(),
+            varid: self.varid,
             name: Pos(name),
             help: help,
             action: act,
@@ -366,7 +415,8 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
 }
 
 pub struct ArgumentParser<'a> {
-    description: &'a str,
+    priv description: &'a str,
+    priv vars: ~[Rc<Var<'a>>],
     priv options: ~[Rc<GenericOption<'a>>],
     priv arguments: ~[Rc<GenericOption<'a>>],
     priv catchall_argument: Option<Rc<GenericOption<'a>>>,
@@ -376,11 +426,12 @@ pub struct ArgumentParser<'a> {
 
 
 
-impl<'a> ArgumentParser<'a> {
+impl<'parser> ArgumentParser<'parser> {
 
     pub fn new() -> ArgumentParser {
         return ArgumentParser {
             description: "",
+            vars: ~[],
             arguments: ~[],
             catchall_argument: None,
             options: ~[],
@@ -390,15 +441,23 @@ impl<'a> ArgumentParser<'a> {
     }
 
     pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
-        -> ~Ref<'x, 'a, T>
+        -> ~Ref<'x, 'parser, T>
     {
+        let cell = Rc::new(RefCell::new(val));
+        let id = self.vars.len();
+        self.vars.push(Rc::new(Var {
+                id: id,
+                required: false,
+                metavar: "",
+                }));
         return ~Ref {
-            cell: Rc::new(RefCell::new(val)),
+            cell: cell.clone(),
+            varid: id,
             parser: self,
         };
     }
 
-    pub fn set_description(&mut self, descr: &'a str) {
+    pub fn set_description(&mut self, descr: &'parser str) {
         self.description = descr;
     }
 
