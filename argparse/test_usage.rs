@@ -24,7 +24,7 @@ fn test_options() {
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
     assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test [options]\n"
+        + &"    ./argparse_test [OPTIONS]\n"
         , from_utf8(buf.unwrap()).unwrap().to_owned());
 }
 

@@ -49,3 +49,10 @@ fn test_no_arg() {
     check_err(&ap, ~[~"./argparse_test", ~"--an-option"]);
 }
 
+#[test]
+fn test_help() {
+    let ap = ArgumentParser::new();
+    check_ok(&ap, ~[~"./argparse_test"]);
+    check_exit(&ap, ~[~"./argparse_test", ~"--help"]);
+}
+

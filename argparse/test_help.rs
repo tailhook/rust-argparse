@@ -14,6 +14,9 @@ fn test_empty() {
         + &"    ./argparse_test\n"
         + &"\n"
         + &"Test program\n"
+        + &"\n"
+        + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
         , from_utf8(buf.unwrap()).unwrap().to_owned());
 }
 
@@ -34,13 +37,14 @@ fn test_options() {
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test [options]
+        + &"    ./argparse_test [OPTIONS]
 
 Test program. The description of the program is ought to be very long, because
 we want to test how word wrapping works for it. So some more text would be ok
 for the test\n"
         + &"\n"
         + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
         + &"  --value VALUE         Set integer value\n"
         + &"  -L,--long-option LONG_OPTION\n"
         + &"                        Long option value\n"
@@ -64,6 +68,9 @@ fn test_argument() {
         + &"\n"
         + &"positional arguments:\n"
         + &"  value                 Integer value\n"
+        + &"\n"
+        + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
         , from_utf8(buf.unwrap()).unwrap().to_owned());
 }
 
@@ -89,5 +96,8 @@ fn test_arguments() {
         + &"positional arguments:\n"
         + &"  v1                    Integer value 1\n"
         + &"  v2                    More values\n"
+        + &"\n"
+        + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
         , from_utf8(buf.unwrap()).unwrap().to_owned());
 }

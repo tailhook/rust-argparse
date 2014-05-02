@@ -1,6 +1,17 @@
 use std::str::CharOffsets;
 use std::io::IoResult;
 
+use super::action::{IFlagAction, Help, ParseResult};
+
+pub struct HelpAction;
+
+impl IFlagAction for HelpAction {
+    fn parse_flag(&self) -> ParseResult {
+        return Help;
+    }
+}
+
+
 struct WordsIter<'a> {
     data: &'a str,
     iter: CharOffsets<'a>,
@@ -73,3 +84,5 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: uint, indent: uint)
     }
     return Ok(());
 }
+
+

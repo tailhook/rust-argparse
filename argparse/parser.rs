@@ -18,7 +18,7 @@ use super::action::{ParseResult, Parsed, Help, Exit, Error};
 use super::action::TypedAction;
 use super::action::{Flag, Single, Push, Many};
 use super::action::IArgAction;
-use super::help::wrap_text;
+use super::help::{HelpAction, wrap_text};
 
 
 static OPTION_WIDTH: uint = 24;
@@ -68,7 +68,7 @@ impl<'a> Show for OptionName<'a> {
 
 struct GenericOption<'a> {
     id: uint,
-    varid: uint,
+    varid: Option<uint>,
     name: OptionName<'a>,
     help: &'a str,
     action: Action,
@@ -138,7 +138,10 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
             },
         };
-        self.set_vars.insert(opt.varid);
+        match opt.varid {
+            Some(varid) => { self.set_vars.insert(varid); }
+            None => {}
+        }
         match opt.action {
             Single(ref action) => {
                 return action.parse_arg(value);
@@ -190,7 +193,12 @@ impl<'a, 'b> Context<'a, 'b> {
                                     optname));
                             }
                             None => {
-                                self.set_vars.insert(opt.varid);
+                                match opt.varid {
+                                    Some(varid) => {
+                                        self.set_vars.insert(varid);
+                                    }
+                                    None => {}
+                                }
                                 return action.parse_flag();
                             }
                         }
@@ -218,7 +226,10 @@ impl<'a, 'b> Context<'a, 'b> {
             };
             let res = match opt.action {
                 Flag(ref action) => {
-                    self.set_vars.insert(opt.varid);
+                    match opt.varid {
+                        Some(varid) => { self.set_vars.insert(varid); }
+                        None => {}
+                    }
                     action.parse_flag()
                 }
                 Single(_) | Push(_) | Many(_) => {
@@ -291,7 +302,7 @@ impl<'a, 'b> Context<'a, 'b> {
             loop {
                 match pargs.next() {
                     Some(option) => {
-                        if ctx.set_vars.contains(&option.varid) {
+                        if ctx.set_vars.contains(&option.varid.unwrap()) {
                             continue;
                         }
                         opt = option;
@@ -309,7 +320,7 @@ impl<'a, 'b> Context<'a, 'b> {
             }
             let res = match opt.action {
                 Single(ref act) => {
-                    ctx.set_vars.insert(opt.varid);
+                    ctx.set_vars.insert(opt.varid.unwrap());
                     act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
@@ -354,37 +365,6 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         action: ~TypedAction<T>, help: &'b str)
         -> &'x mut Ref<'a, 'b, T>
     {
-        let opt = Rc::new(GenericOption {
-            id: self.parser.options.len(),
-            varid: self.varid,
-            name: Dash(names.clone()),
-            help: help,
-            action: action.bind(self.cell.clone()),
-            });
-
-        if names.len() < 0 {
-            fail!("At least one name for option must be specified");
-        }
-        for nameptr in names.iter() {
-            let name = *nameptr;
-            match ArgumentKind::check(name) {
-                Positional|Delimiter => {
-                    fail!("Bad argument name {}", name);
-                }
-                LongOption => {
-                    self.parser.long_options.insert(
-                        name.to_str(), opt.clone());
-                }
-                ShortOption => {
-                    if name.len() > 2 {
-                        fail!("Bad short argument {}", name);
-                    }
-                    self.parser.short_options.insert(
-                        name[1] as char, opt.clone());
-                }
-            }
-        }
-        self.parser.options.push(opt);
         {
             let var = &mut self.parser.vars[self.varid];
             if var.metavar.len() == 0 {
@@ -402,6 +382,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
                 }
             }
         }
+        self.parser.add_option_for(Some(self.varid), names,
+            action.bind(self.cell.clone()),
+            help);
         return self;
     }
 
@@ -412,7 +395,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericOption {
             id: self.parser.options.len(),
-            varid: self.varid,
+            varid: Some(self.varid),
             name: Pos(name),
             help: help,
             action: act,
@@ -458,7 +441,8 @@ pub struct ArgumentParser<'a> {
 impl<'parser> ArgumentParser<'parser> {
 
     pub fn new() -> ArgumentParser {
-        return ArgumentParser {
+
+        let mut ap = ArgumentParser {
             description: "",
             vars: ~[],
             arguments: ~[],
@@ -467,6 +451,9 @@ impl<'parser> ArgumentParser<'parser> {
             short_options: HashMap::new(),
             long_options: HashMap::new(),
             };
+        ap.add_option_for(None, ~["-h", "--help"], Flag(~HelpAction),
+            "show this help message and exit");
+        return ap;
     }
 
     pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
@@ -488,6 +475,42 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn set_description(&mut self, descr: &'parser str) {
         self.description = descr;
+    }
+
+    fn add_option_for(&mut self, var: Option<uint>, names: ~[&'parser str],
+        action: Action, help: &'parser str)
+    {
+        let opt = Rc::new(GenericOption {
+            id: self.options.len(),
+            varid: var,
+            name: Dash(names.clone()),
+            help: help,
+            action: action,
+            });
+
+        if names.len() < 0 {
+            fail!("At least one name for option must be specified");
+        }
+        for nameptr in names.iter() {
+            let name = *nameptr;
+            match ArgumentKind::check(name) {
+                Positional|Delimiter => {
+                    fail!("Bad argument name {}", name);
+                }
+                LongOption => {
+                    self.long_options.insert(
+                        name.to_str(), opt.clone());
+                }
+                ShortOption => {
+                    if name.len() > 2 {
+                        fail!("Bad short argument {}", name);
+                    }
+                    self.short_options.insert(
+                        name[1] as char, opt.clone());
+                }
+            }
+        }
+        self.options.push(opt);
     }
 
     pub fn print_help(&self, name: &str, writer: &mut Writer) -> IoResult<()> {
@@ -570,7 +593,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                     Flag(_) => {}
                     Single(_) | Push(_) | Many(_) => {
                         try!(self.buf.write_char(' '));
-                        let var = &self.parser.vars[opt.varid];
+                        let var = &self.parser.vars[opt.varid.unwrap()];
                         try!(self.buf.write_str(var.metavar));
                         num += var.metavar.len() + 1;
                     }
@@ -632,10 +655,10 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         try!(self.buf.write_str("Usage:\n    "));
         try!(self.buf.write(self.name.as_bytes()));
         if self.parser.options.len() != 0 {
-            if self.parser.short_options.len() > 0
-                || self.parser.long_options.len() > 0
+            if self.parser.short_options.len() > 1
+                || self.parser.long_options.len() > 1
             {
-                try!(self.buf.write_str(" [options]"));
+                try!(self.buf.write_str(" [OPTIONS]"));
             }
             for opt in self.parser.arguments.iter() {
                 match opt.name {
