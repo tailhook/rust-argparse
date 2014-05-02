@@ -101,3 +101,25 @@ fn test_arguments() {
         + &"  -h,--help             show this help message and exit\n"
         , from_utf8(buf.unwrap()).unwrap().to_owned());
 }
+
+#[test]
+fn test_metavar() {
+    let mut ap = ArgumentParser::new();
+    let mut val2 = 0;
+    ap.set_description("Test program.");
+    ap.refer(&mut val2)
+      .add_option(~["-L", "--long-option"], ~Store::<int>,
+        "Long option value")
+      .metavar(~"VAL");
+    let mut buf = MemWriter::new();
+    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert_eq!(&"Usage:\n"
+        + &"    ./argparse_test [OPTIONS]\n"
+        + &"\n"
+        + &"Test program.\n"
+        + &"\n"
+        + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
+        + &"  -L,--long-option VAL  Long option value\n"
+        , from_utf8(buf.unwrap()).unwrap().to_owned());
+}

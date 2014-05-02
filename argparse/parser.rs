@@ -424,6 +424,16 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         }
         return self;
     }
+
+    pub fn metavar<'x>(&'x mut self, name: ~str)
+        -> &'x mut Ref<'a, 'b, T>
+    {
+        {
+            let var = &mut self.parser.vars[self.varid];
+            var.metavar = name;
+        }
+        return self;
+    }
 }
 
 pub struct ArgumentParser<'a> {
