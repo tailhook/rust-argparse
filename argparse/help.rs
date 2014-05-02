@@ -43,12 +43,11 @@ impl<'a> Iterator<&'a str> for WordsIter<'a> {
     }
 }
 
-pub fn wrap_text(buf: &mut Writer, data: &str, width: uint,
-    first_indent: uint, indent: uint)
+pub fn wrap_text(buf: &mut Writer, data: &str, width: uint, indent: uint)
     -> IoResult<()>
 {
     let mut witer = WordsIter::new(data);
-    let mut off = first_indent;
+    let mut off = indent;
     match witer.next() {
         None => {
             return Ok(());
@@ -61,7 +60,10 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: uint,
     for word in witer {
         if off + word.len() + 1 > width {
             try!(buf.write_char('\n'));
-            off = 0;
+            for _ in range(0, indent) {
+                try!(buf.write_char(' '));
+            }
+            off = indent;
         } else {
             try!(buf.write_char(' '));
             off += 1;

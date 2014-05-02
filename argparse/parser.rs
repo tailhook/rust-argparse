@@ -21,6 +21,10 @@ use action::IArgAction;
 use help::wrap_text;
 
 
+static OPTION_WIDTH: uint = 24;
+static TOTAL_WIDTH: uint = 79;
+
+
 enum ArgumentKind {
     Positional,
     ShortOption,
@@ -86,7 +90,7 @@ impl<'a> TotalEq for GenericOption<'a> {}
 
 pub struct Var<'parser> {
     priv id: uint,
-    priv metavar: &'parser str,
+    priv metavar: ~str,
     priv required: bool,
 }
 
@@ -106,7 +110,7 @@ impl<'a> TotalEq for Var<'a> {}
 
 pub struct Context<'ctx, 'parser> {
     parser: &'ctx ArgumentParser<'parser>,
-    set_vars: HashSet<Rc<Var<'parser>>>,
+    set_vars: HashSet<uint>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
     iter: Peekable<&'ctx ~str, Items<'ctx, ~str>>,
@@ -134,7 +138,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
             },
         };
-        self.set_vars.insert(self.parser.vars[opt.varid].clone());
+        self.set_vars.insert(opt.varid);
         match opt.action {
             Single(ref action) => {
                 return action.parse_arg(value);
@@ -186,8 +190,7 @@ impl<'a, 'b> Context<'a, 'b> {
                                     optname));
                             }
                             None => {
-                                self.set_vars.insert(
-                                    self.parser.vars[opt.varid].clone());
+                                self.set_vars.insert(opt.varid);
                                 return action.parse_flag();
                             }
                         }
@@ -215,8 +218,7 @@ impl<'a, 'b> Context<'a, 'b> {
             };
             let res = match opt.action {
                 Flag(ref action) => {
-                    self.set_vars.insert(
-                        self.parser.vars[opt.varid].clone());
+                    self.set_vars.insert(opt.varid);
                     action.parse_flag()
                 }
                 Single(_) | Push(_) | Many(_) => {
@@ -289,7 +291,7 @@ impl<'a, 'b> Context<'a, 'b> {
             loop {
                 match pargs.next() {
                     Some(option) => {
-                        if ctx.set_vars.contains(&ctx.parser.vars[option.varid]) {
+                        if ctx.set_vars.contains(&option.varid) {
                             continue;
                         }
                         opt = option;
@@ -307,8 +309,7 @@ impl<'a, 'b> Context<'a, 'b> {
             }
             let res = match opt.action {
                 Single(ref act) => {
-                    ctx.set_vars.insert(
-                        ctx.parser.vars[opt.varid].clone());
+                    ctx.set_vars.insert(opt.varid);
                     act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
@@ -361,6 +362,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
             action: action.bind(self.cell.clone()),
             });
 
+        if names.len() < 0 {
+            fail!("At least one name for option must be specified");
+        }
         for nameptr in names.iter() {
             let name = *nameptr;
             match ArgumentKind::check(name) {
@@ -381,11 +385,29 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
             }
         }
         self.parser.options.push(opt);
+        {
+            let var = &mut self.parser.vars[self.varid];
+            if var.metavar.len() == 0 {
+                let mut longest_name = names[0];
+                let mut llen = longest_name.len();
+                for name in names.iter() {
+                    if name.len() > llen {
+                        longest_name = *name;
+                        llen = longest_name.len();
+                    }
+                }
+                if llen > 2 {
+                    var.metavar = longest_name.slice(2, llen)
+                        .to_ascii_upper().replace("-", "_");
+                }
+            }
+        }
         return self;
     }
 
     pub fn add_argument<'x>(&'x mut self, name: &'b str,
         action: ~TypedAction<T>, help: &'b str)
+        -> &'x mut Ref<'a, 'b, T>
     {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericOption {
@@ -411,12 +433,19 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
                 self.parser.arguments.push(opt);
             }
         }
+        {
+            let var = &mut self.parser.vars[self.varid];
+            if var.metavar.len() == 0 {
+                var.metavar = name.to_owned();
+            }
+        }
+        return self;
     }
 }
 
 pub struct ArgumentParser<'a> {
     priv description: &'a str,
-    priv vars: ~[Rc<Var<'a>>],
+    priv vars: ~[~Var<'a>],
     priv options: ~[Rc<GenericOption<'a>>],
     priv arguments: ~[Rc<GenericOption<'a>>],
     priv catchall_argument: Option<Rc<GenericOption<'a>>>,
@@ -445,11 +474,11 @@ impl<'parser> ArgumentParser<'parser> {
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
-        self.vars.push(Rc::new(Var {
+        self.vars.push(~Var {
                 id: id,
                 required: false,
-                metavar: "",
-                }));
+                metavar: ~"",
+                });
         return ~Ref {
             cell: cell.clone(),
             varid: id,
@@ -515,12 +544,82 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             .write_help();
     }
 
+    pub fn print_option(&mut self, opt: &GenericOption<'b>) -> IoResult<()> {
+        let mut num = 2;
+        try!(self.buf.write_str("  "));
+        match opt.name {
+            Pos(name) => {
+                try!(self.buf.write_str(name));
+                num += name.len();
+            }
+            Dash(ref names) => {
+                let mut niter = names.iter();
+                let name = niter.next().unwrap();
+                try!(self.buf.write_str(*name));
+                num += name.len();
+                for name in niter {
+                    try!(self.buf.write_char(','));
+                    try!(self.buf.write_str(*name));
+                    num += name.len() + 1;
+                }
+                match opt.action {
+                    Flag(_) => {}
+                    Single(_) | Push(_) | Many(_) => {
+                        try!(self.buf.write_char(' '));
+                        let var = &self.parser.vars[opt.varid];
+                        try!(self.buf.write_str(var.metavar));
+                        num += var.metavar.len() + 1;
+                    }
+                }
+            }
+        }
+        if num >= OPTION_WIDTH {
+            try!(self.buf.write_char('\n'));
+            for _ in range(0, OPTION_WIDTH) {
+                try!(self.buf.write_char(' '));
+            }
+        } else {
+            for _ in range(num, OPTION_WIDTH) {
+                try!(self.buf.write_char(' '));
+            }
+        }
+        try!(wrap_text(self.buf, opt.help, TOTAL_WIDTH, OPTION_WIDTH));
+        try!(self.buf.write_char('\n'));
+        return Ok(());
+    }
+
     fn write_help(&mut self) -> IoResult<()> {
         try!(self.write_usage());
         try!(self.buf.write_char('\n'));
         if self.parser.description.len() > 0 {
-            try!(wrap_text(self.buf, self.parser.description, 79, 0, 0));
+            try!(wrap_text(self.buf, self.parser.description,TOTAL_WIDTH, 0));
             try!(self.buf.write_char('\n'));
+        }
+        if self.parser.arguments.len() > 0
+            || self.parser.catchall_argument.is_some()
+        {
+            try!(self.buf.write_str("\npositional arguments:\n"));
+            for arg in self.parser.arguments.iter() {
+                try!(self.print_option(&**arg));
+            }
+            match self.parser.catchall_argument {
+                Some(ref opt) => {
+                    try!(self.print_option(&**opt));
+                }
+                None => {}
+            }
+        }
+        if self.parser.short_options.len() > 0
+            || self.parser.long_options.len() > 0
+        {
+            try!(self.buf.write_str("\noptional arguments:\n"));
+            for opt in self.parser.options.iter() {
+                match opt.name {
+                    Dash(_) => {}
+                    Pos(_) => { continue; }
+                }
+                try!(self.print_option(&**opt));
+            }
         }
         return Ok(());
     }
