@@ -103,6 +103,36 @@ fn test_arguments() {
 }
 
 #[test]
+fn test_req_arguments() {
+    let mut ap = ArgumentParser::new();
+    let mut v1 = 0;
+    let mut v2 = ~[];
+    ap.set_description("Test program");
+    ap.refer(&mut v1)
+      .add_argument("v1", ~Store::<int>,
+        "Integer value 1")
+      .required();
+    ap.refer(&mut v2)
+      .add_argument("v2", ~List::<int>,
+        "More values")
+      .required();
+    let mut buf = MemWriter::new();
+    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert_eq!(&"Usage:\n"
+        + &"    ./argparse_test V1 V2 [...]\n"
+        + &"\n"
+        + &"Test program\n"
+        + &"\n"
+        + &"positional arguments:\n"
+        + &"  v1                    Integer value 1\n"
+        + &"  v2                    More values\n"
+        + &"\n"
+        + &"optional arguments:\n"
+        + &"  -h,--help             show this help message and exit\n"
+        , from_utf8(buf.unwrap()).unwrap().to_owned());
+}
+
+#[test]
 fn test_metavar() {
     let mut ap = ArgumentParser::new();
     let mut val2 = 0;

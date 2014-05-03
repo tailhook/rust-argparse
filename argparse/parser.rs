@@ -254,32 +254,22 @@ impl<'a, 'b> Context<'a, 'b> {
         self.arguments.push(arg);
     }
 
-    fn parse(parser: &ArgumentParser, args: &[~str])
-        -> ParseResult
-    {
-        let mut ctx = Context {
-            parser: parser,
-            iter: args.iter().peekable(),
-            set_vars: HashSet::new(),
-            list_options: HashMap::new(),
-            arguments: Vec::new(),
-        };
-
+    fn parse_options(&mut self) -> ParseResult {
         // Parsing options, postponing positional arguments
-        ctx.iter.next();  // Command name
+        self.iter.next();  // Command name
         loop {
-            let next = ctx.iter.next();
+            let next = self.iter.next();
             let arg = match next {
                 Some(arg) => { arg }
                 None => { break; }
             };
             let res = match ArgumentKind::check(*arg) {
                 Positional => {
-                    ctx.postpone_argument(*arg);
+                    self.postpone_argument(*arg);
                     continue;
                 }
-                LongOption => ctx.parse_long_option(*arg),
-                ShortOption => ctx.parse_short_options(*arg),
+                LongOption => self.parse_long_option(*arg),
+                ShortOption => self.parse_short_options(*arg),
                 Delimiter => break,
             };
             match res {
@@ -289,26 +279,29 @@ impl<'a, 'b> Context<'a, 'b> {
         }
 
         loop {
-            match ctx.iter.next() {
+            match self.iter.next() {
                 None => break,
-                Some(arg) => ctx.postpone_argument(*arg),
+                Some(arg) => self.postpone_argument(*arg),
             }
         }
+        return Parsed;
+    }
 
+    fn parse_arguments(&mut self) -> ParseResult {
         // Parse positional arguments
-        let mut pargs = ctx.parser.arguments.iter();
-        for arg in ctx.arguments.iter() {
+        let mut pargs = self.parser.arguments.iter();
+        for arg in self.arguments.iter() {
             let mut opt;
             loop {
                 match pargs.next() {
                     Some(option) => {
-                        if ctx.set_vars.contains(&option.varid.unwrap()) {
+                        if self.set_vars.contains(&option.varid.unwrap()) {
                             continue;
                         }
                         opt = option;
                         break;
                     }
-                    None => match ctx.parser.catchall_argument {
+                    None => match self.parser.catchall_argument {
                         Some(ref option) => {
                             opt = option;
                             break;
@@ -320,11 +313,11 @@ impl<'a, 'b> Context<'a, 'b> {
             }
             let res = match opt.action {
                 Single(ref act) => {
-                    ctx.set_vars.insert(opt.varid.unwrap());
+                    self.set_vars.insert(opt.varid.unwrap());
                     act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
-                    ctx.list_options.find_or_insert(
+                    self.list_options.find_or_insert(
                         opt.clone(), Vec::new()).push(*arg);
                     Parsed
                 },
@@ -335,9 +328,12 @@ impl<'a, 'b> Context<'a, 'b> {
                 _ => return res,
             }
         }
+        return Parsed;
+    }
 
+    fn parse_list_vars(&mut self) -> ParseResult {
         // Parse list_arguments, which were collected before
-        for (opt, lst) in ctx.list_options.iter() {
+        for (opt, lst) in self.list_options.iter() {
             match opt.action {
                 Push(ref act) | Many(ref act) => {
                     let res = act.parse_args(lst.as_slice());
@@ -349,6 +345,77 @@ impl<'a, 'b> Context<'a, 'b> {
                 _ => fail!(),
             }
         }
+        return Parsed;
+    }
+
+    fn check_required(&mut self) -> ParseResult {
+        // Check for required arguments
+        for var in self.parser.vars.iter() {
+            if var.required && !self.set_vars.contains(&var.id) {
+                // First try positional arguments
+                for opt in self.parser.arguments.iter() {
+                    match opt.varid {
+                        Some(varid) if varid == var.id => {}
+                        _ => { continue }
+                    }
+                    match opt.name {
+                        Pos(name) => {
+                            return Error(format!(
+                                "Argument {} is required", name));
+                        }
+                        _ => { fail!(); }
+                    }
+                }
+                // Then options
+                for opt in self.parser.options.iter() {
+                    match opt.varid {
+                        Some(varid) if varid == var.id => {}
+                        _ => { continue }
+                    }
+                    match opt.name {
+                        Dash(ref names) => {
+                            return Error(format!(
+                                "Option {} is required", names));
+                        }
+                        _ => { fail!(); }
+                    }
+                }
+            }
+        }
+        return Parsed;
+    }
+
+    fn parse(parser: &ArgumentParser, args: &[~str])
+        -> ParseResult
+    {
+        let mut ctx = Context {
+            parser: parser,
+            iter: args.iter().peekable(),
+            set_vars: HashSet::new(),
+            list_options: HashMap::new(),
+            arguments: Vec::new(),
+        };
+
+        match ctx.parse_options() {
+            Parsed => {}
+            x => { return x; }
+        }
+
+        match ctx.parse_arguments() {
+            Parsed => {}
+            x => { return x; }
+        }
+
+        match ctx.parse_list_vars() {
+            Parsed => {}
+            x => { return x; }
+        }
+
+        match ctx.check_required() {
+            Parsed => {}
+            x => { return x; }
+        }
+
         return Parsed;
     }
 }
@@ -431,6 +498,16 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         {
             let var = &mut self.parser.vars[self.varid];
             var.metavar = name;
+        }
+        return self;
+    }
+
+    pub fn required<'x>(&'x mut self)
+        -> &'x mut Ref<'a, 'b, T>
+    {
+        {
+            let var = &mut self.parser.vars[self.varid];
+            var.required = true;
         }
         return self;
     }
@@ -673,9 +750,15 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             for opt in self.parser.arguments.iter() {
                 match opt.name {
                     Pos(name) => {
-                        try!(self.buf.write_str(" ["));
+                        let var = &self.parser.vars[opt.varid.unwrap()];
+                        try!(self.buf.write_char(' '));
+                        if !var.required {
+                            try!(self.buf.write_char('['));
+                        }
                         try!(self.buf.write_str(name.to_ascii_upper()));
-                        try!(self.buf.write_char(']'));
+                        if !var.required {
+                            try!(self.buf.write_char(']'));
+                        }
                     }
                     _ => {}
                 }
@@ -684,9 +767,17 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 Some(ref opt) => {
                     match opt.name {
                         Pos(name) => {
-                            try!(self.buf.write_str(" ["));
+                            let var = &self.parser.vars[opt.varid.unwrap()];
+                            try!(self.buf.write_char(' '));
+                            if !var.required {
+                                try!(self.buf.write_char('['));
+                            }
                             try!(self.buf.write_str(name.to_ascii_upper()));
-                            try!(self.buf.write_str(" ...]"));
+                            if !var.required {
+                                try!(self.buf.write_str(" ...]"));
+                            } else {
+                                try!(self.buf.write_str(" [...]"));
+                            }
                         }
                         _ => {}
                     }
