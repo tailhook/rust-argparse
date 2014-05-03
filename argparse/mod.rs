@@ -28,3 +28,4 @@ mod num;
 #[cfg(test)] mod test_optional;
 #[cfg(test)] mod test_usage;
 #[cfg(test)] mod test_help;
+#[cfg(test)] mod test_env;

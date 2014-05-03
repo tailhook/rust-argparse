@@ -5,10 +5,10 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use std::iter::Peekable;
 use std::slice::Items;
-use std::fmt::{Show, Formatter};
 use std::hash::Hash;
 use std::hash::sip::SipState;
 use std::ascii::StrAsciiExt;
+use std::from_str::FromStr;
 
 use collections::hashmap::HashMap;
 use collections::hashmap::HashSet;
@@ -18,6 +18,7 @@ use super::action::{ParseResult, Parsed, Help, Exit, Error};
 use super::action::TypedAction;
 use super::action::{Flag, Single, Push, Many};
 use super::action::IArgAction;
+use super::generic::StoreAction;
 use super::help::{HelpAction, wrap_text};
 
 
@@ -52,26 +53,26 @@ impl ArgumentKind {
     }
 }
 
-enum OptionName<'a> {
-    Dash(~[&'a str]),
-    Pos(&'a str),
+struct GenericArgument<'parser> {
+    id: uint,
+    varid: uint,
+    name: &'parser str,
+    help: &'parser str,
+    action: Action,
 }
 
-impl<'a> Show for OptionName<'a> {
-    fn fmt(&self, fmt: &mut Formatter) -> IoResult<()> {
-        return match *self {
-            Dash(ref names) => names.fmt(fmt),
-            Pos(ref name) => name.fmt(fmt),
-        }
-    }
-}
-
-struct GenericOption<'a> {
+struct GenericOption<'parser> {
     id: uint,
     varid: Option<uint>,
-    name: OptionName<'a>,
-    help: &'a str,
+    names: ~[&'parser str],
+    help: &'parser str,
     action: Action,
+}
+
+struct EnvVar<'parser> {
+    varid: uint,
+    name: &'parser str,
+    action: ~IArgAction,
 }
 
 impl<'a> Hash for GenericOption<'a> {
@@ -87,6 +88,20 @@ impl<'a> Eq for GenericOption<'a> {
 }
 
 impl<'a> TotalEq for GenericOption<'a> {}
+
+impl<'a> Hash for GenericArgument<'a> {
+    fn hash(&self, state: &mut SipState) {
+        state.write_uint(self.id).unwrap();
+    }
+}
+
+impl<'a> Eq for GenericArgument<'a> {
+    fn eq(&self, other: &GenericArgument<'a>) -> bool {
+        return self.id == other.id;
+    }
+}
+
+impl<'a> TotalEq for GenericArgument<'a> {}
 
 pub struct Var<'parser> {
     priv id: uint,
@@ -112,8 +127,10 @@ pub struct Context<'ctx, 'parser> {
     parser: &'ctx ArgumentParser<'parser>,
     set_vars: HashSet<uint>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
+    list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
     iter: Peekable<&'ctx ~str, Items<'ctx, ~str>>,
+    stderr: &'ctx mut Writer,
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -133,7 +150,7 @@ impl<'a, 'b> Context<'a, 'b> {
                     return match opt.action {
                         Many(_) => Parsed,
                         _ => Error(format!(
-                            "Option {} requires an argument", opt.name)),
+                            "Option {} requires an argument", opt.names)),
                     };
                 }
             },
@@ -255,7 +272,6 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 
     fn parse_options(&mut self) -> ParseResult {
-        // Parsing options, postponing positional arguments
         self.iter.next();  // Command name
         loop {
             let next = self.iter.next();
@@ -288,14 +304,13 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 
     fn parse_arguments(&mut self) -> ParseResult {
-        // Parse positional arguments
         let mut pargs = self.parser.arguments.iter();
         for arg in self.arguments.iter() {
             let mut opt;
             loop {
                 match pargs.next() {
                     Some(option) => {
-                        if self.set_vars.contains(&option.varid.unwrap()) {
+                        if self.set_vars.contains(&option.varid) {
                             continue;
                         }
                         opt = option;
@@ -313,11 +328,11 @@ impl<'a, 'b> Context<'a, 'b> {
             }
             let res = match opt.action {
                 Single(ref act) => {
-                    self.set_vars.insert(opt.varid.unwrap());
+                    self.set_vars.insert(opt.varid);
                     act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
-                    self.list_options.find_or_insert(
+                    self.list_arguments.find_or_insert(
                         opt.clone(), Vec::new()).push(*arg);
                     Parsed
                 },
@@ -332,8 +347,19 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 
     fn parse_list_vars(&mut self) -> ParseResult {
-        // Parse list_arguments, which were collected before
         for (opt, lst) in self.list_options.iter() {
+            match opt.action {
+                Push(ref act) | Many(ref act) => {
+                    let res = act.parse_args(lst.as_slice());
+                    match res {
+                        Parsed => continue,
+                        _ => return res,
+                    }
+                }
+                _ => fail!(),
+            }
+        }
+        for (opt, lst) in self.list_arguments.iter() {
             match opt.action {
                 Push(ref act) | Many(ref act) => {
                     let res = act.parse_args(lst.as_slice());
@@ -348,22 +374,38 @@ impl<'a, 'b> Context<'a, 'b> {
         return Parsed;
     }
 
+    fn parse_env_vars(&mut self) -> ParseResult {
+        for evar in self.parser.env_vars.iter() {
+            match os::getenv(evar.name) {
+                Some(val) => {
+                    match evar.action.parse_arg(val) {
+                        Parsed => {
+                            self.set_vars.insert(evar.varid);
+                            continue;
+                        }
+                        Error(err) => {
+                            self.stderr.write_str(format!(
+                                "WARNING: Environment variable {}: {}\n",
+                                evar.name, err)).ok();
+                        }
+                        x => fail!(format!("Unexpected result {:?}", x)),
+                    }
+                }
+                None => {}
+            }
+        }
+        return Parsed;
+    }
+
     fn check_required(&mut self) -> ParseResult {
         // Check for required arguments
         for var in self.parser.vars.iter() {
             if var.required && !self.set_vars.contains(&var.id) {
                 // First try positional arguments
                 for opt in self.parser.arguments.iter() {
-                    match opt.varid {
-                        Some(varid) if varid == var.id => {}
-                        _ => { continue }
-                    }
-                    match opt.name {
-                        Pos(name) => {
-                            return Error(format!(
-                                "Argument {} is required", name));
-                        }
-                        _ => { fail!(); }
+                    if opt.varid == var.id {
+                        return Error(format!(
+                            "Argument {} is required", opt.name));
                     }
                 }
                 // Then options
@@ -372,12 +414,14 @@ impl<'a, 'b> Context<'a, 'b> {
                         Some(varid) if varid == var.id => {}
                         _ => { continue }
                     }
-                    match opt.name {
-                        Dash(ref names) => {
-                            return Error(format!(
-                                "Option {} is required", names));
-                        }
-                        _ => { fail!(); }
+                    return Error(format!(
+                        "Option {} is required", opt.names));
+                }
+                // Then envvars
+                for envvar in self.parser.env_vars.iter() {
+                    if envvar.varid == var.id {
+                        return Error(format!(
+                            "Environment var {} is required", envvar.name));
                     }
                 }
             }
@@ -385,7 +429,7 @@ impl<'a, 'b> Context<'a, 'b> {
         return Parsed;
     }
 
-    fn parse(parser: &ArgumentParser, args: &[~str])
+    fn parse(parser: &ArgumentParser, args: &[~str], stderr: &mut Writer)
         -> ParseResult
     {
         let mut ctx = Context {
@@ -393,8 +437,15 @@ impl<'a, 'b> Context<'a, 'b> {
             iter: args.iter().peekable(),
             set_vars: HashSet::new(),
             list_options: HashMap::new(),
+            list_arguments: HashMap::new(),
             arguments: Vec::new(),
+            stderr: stderr,
         };
+
+        match ctx.parse_env_vars() {
+            Parsed => {}
+            x => { return x; }
+        }
 
         match ctx.parse_options() {
             Parsed => {}
@@ -460,14 +511,13 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         -> &'x mut Ref<'a, 'b, T>
     {
         let act = action.bind(self.cell.clone());
-        let opt = Rc::new(GenericOption {
-            id: self.parser.options.len(),
-            varid: Some(self.varid),
-            name: Pos(name),
+        let opt = Rc::new(GenericArgument {
+            id: self.parser.arguments.len(),
+            varid: self.varid,
+            name: name,
             help: help,
             action: act,
             });
-        self.parser.options.push(opt.clone());
         match opt.action {
             Flag(_) => fail!("Flag arguments can't be positional"),
             Many(_) | Push(_) => {
@@ -513,12 +563,26 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 }
 
+impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
+    pub fn envvar<'x>(&'x mut self, varname: &'b str)
+        -> &'x mut Ref<'a, 'b, T>
+    {
+        self.parser.env_vars.push(Rc::new(EnvVar {
+            varid: self.varid,
+            name: varname,
+            action: ~StoreAction { cell: self.cell.clone() },
+            }));
+        return self;
+    }
+}
+
 pub struct ArgumentParser<'a> {
     priv description: &'a str,
     priv vars: ~[~Var<'a>],
     priv options: ~[Rc<GenericOption<'a>>],
-    priv arguments: ~[Rc<GenericOption<'a>>],
-    priv catchall_argument: Option<Rc<GenericOption<'a>>>,
+    priv arguments: ~[Rc<GenericArgument<'a>>],
+    priv env_vars: ~[Rc<EnvVar<'a>>],
+    priv catchall_argument: Option<Rc<GenericArgument<'a>>>,
     priv short_options: HashMap<char, Rc<GenericOption<'a>>>,
     priv long_options: HashMap<~str, Rc<GenericOption<'a>>>,
 }
@@ -532,6 +596,7 @@ impl<'parser> ArgumentParser<'parser> {
         let mut ap = ArgumentParser {
             description: "",
             vars: ~[],
+            env_vars: ~[],
             arguments: ~[],
             catchall_argument: None,
             options: ~[],
@@ -570,7 +635,7 @@ impl<'parser> ArgumentParser<'parser> {
         let opt = Rc::new(GenericOption {
             id: self.options.len(),
             varid: var,
-            name: Dash(names.clone()),
+            names: names.clone(),
             help: help,
             action: action,
             });
@@ -613,7 +678,7 @@ impl<'parser> ArgumentParser<'parser> {
         stdout: &mut Writer, stderr: &mut Writer)
         -> Result<(), int>
     {
-        match Context::parse(self, args) {
+        match Context::parse(self, args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
@@ -658,33 +723,47 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             .write_help();
     }
 
+    pub fn print_argument(&mut self, arg: &GenericArgument<'b>)
+        -> IoResult<()>
+    {
+        let mut num = 2;
+        try!(self.buf.write_str("  "));
+        try!(self.buf.write_str(arg.name));
+        num += arg.name.len();
+        if num >= OPTION_WIDTH {
+            try!(self.buf.write_char('\n'));
+            for _ in range(0, OPTION_WIDTH) {
+                try!(self.buf.write_char(' '));
+            }
+        } else {
+            for _ in range(num, OPTION_WIDTH) {
+                try!(self.buf.write_char(' '));
+            }
+        }
+        try!(wrap_text(self.buf, arg.help, TOTAL_WIDTH, OPTION_WIDTH));
+        try!(self.buf.write_char('\n'));
+        return Ok(());
+    }
+
     pub fn print_option(&mut self, opt: &GenericOption<'b>) -> IoResult<()> {
         let mut num = 2;
         try!(self.buf.write_str("  "));
-        match opt.name {
-            Pos(name) => {
-                try!(self.buf.write_str(name));
-                num += name.len();
-            }
-            Dash(ref names) => {
-                let mut niter = names.iter();
-                let name = niter.next().unwrap();
-                try!(self.buf.write_str(*name));
-                num += name.len();
-                for name in niter {
-                    try!(self.buf.write_char(','));
-                    try!(self.buf.write_str(*name));
-                    num += name.len() + 1;
-                }
-                match opt.action {
-                    Flag(_) => {}
-                    Single(_) | Push(_) | Many(_) => {
-                        try!(self.buf.write_char(' '));
-                        let var = &self.parser.vars[opt.varid.unwrap()];
-                        try!(self.buf.write_str(var.metavar));
-                        num += var.metavar.len() + 1;
-                    }
-                }
+        let mut niter = opt.names.iter();
+        let name = niter.next().unwrap();
+        try!(self.buf.write_str(*name));
+        num += name.len();
+        for name in niter {
+            try!(self.buf.write_char(','));
+            try!(self.buf.write_str(*name));
+            num += name.len() + 1;
+        }
+        match opt.action {
+            Flag(_) => {}
+            Single(_) | Push(_) | Many(_) => {
+                try!(self.buf.write_char(' '));
+                let var = &self.parser.vars[opt.varid.unwrap()];
+                try!(self.buf.write_str(var.metavar));
+                num += var.metavar.len() + 1;
             }
         }
         if num >= OPTION_WIDTH {
@@ -714,11 +793,11 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         {
             try!(self.buf.write_str("\npositional arguments:\n"));
             for arg in self.parser.arguments.iter() {
-                try!(self.print_option(&**arg));
+                try!(self.print_argument(&**arg));
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
-                    try!(self.print_option(&**opt));
+                    try!(self.print_argument(&**opt));
                 }
                 None => {}
             }
@@ -728,10 +807,6 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         {
             try!(self.buf.write_str("\noptional arguments:\n"));
             for opt in self.parser.options.iter() {
-                match opt.name {
-                    Dash(_) => {}
-                    Pos(_) => { continue; }
-                }
                 try!(self.print_option(&**opt));
             }
         }
@@ -748,38 +823,28 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 try!(self.buf.write_str(" [OPTIONS]"));
             }
             for opt in self.parser.arguments.iter() {
-                match opt.name {
-                    Pos(name) => {
-                        let var = &self.parser.vars[opt.varid.unwrap()];
-                        try!(self.buf.write_char(' '));
-                        if !var.required {
-                            try!(self.buf.write_char('['));
-                        }
-                        try!(self.buf.write_str(name.to_ascii_upper()));
-                        if !var.required {
-                            try!(self.buf.write_char(']'));
-                        }
-                    }
-                    _ => {}
+                let var = &self.parser.vars[opt.varid];
+                try!(self.buf.write_char(' '));
+                if !var.required {
+                    try!(self.buf.write_char('['));
+                }
+                try!(self.buf.write_str(opt.name.to_ascii_upper()));
+                if !var.required {
+                    try!(self.buf.write_char(']'));
                 }
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
-                    match opt.name {
-                        Pos(name) => {
-                            let var = &self.parser.vars[opt.varid.unwrap()];
-                            try!(self.buf.write_char(' '));
-                            if !var.required {
-                                try!(self.buf.write_char('['));
-                            }
-                            try!(self.buf.write_str(name.to_ascii_upper()));
-                            if !var.required {
-                                try!(self.buf.write_str(" ...]"));
-                            } else {
-                                try!(self.buf.write_str(" [...]"));
-                            }
-                        }
-                        _ => {}
+                    let var = &self.parser.vars[opt.varid];
+                    try!(self.buf.write_char(' '));
+                    if !var.required {
+                        try!(self.buf.write_char('['));
+                    }
+                    try!(self.buf.write_str(opt.name.to_ascii_upper()));
+                    if !var.required {
+                        try!(self.buf.write_str(" ...]"));
+                    } else {
+                        try!(self.buf.write_str(" [...]"));
                     }
                 }
                 None => {}
