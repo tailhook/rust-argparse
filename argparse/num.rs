@@ -6,9 +6,9 @@ use super::action::{ParseResult, Parsed};
 use super::action::IFlagAction;
 use super::action::Flag;
 
-pub struct IncrBy<T>(T);
+pub struct IncrBy<T>(pub T);
 
-pub struct DecrBy<T>(T);
+pub struct DecrBy<T>(pub T);
 
 pub struct IncrByAction<'a, T> {
     delta: T,

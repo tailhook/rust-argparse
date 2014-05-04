@@ -104,9 +104,9 @@ impl<'a> Eq for GenericArgument<'a> {
 impl<'a> TotalEq for GenericArgument<'a> {}
 
 pub struct Var<'parser> {
-    priv id: uint,
-    priv metavar: ~str,
-    priv required: bool,
+    id: uint,
+    metavar: ~str,
+    required: bool,
 }
 
 impl<'parser> Hash for Var<'parser> {
@@ -472,19 +472,19 @@ impl<'a, 'b> Context<'a, 'b> {
 }
 
 pub struct Ref<'refer, 'parser, T> {
-    priv cell: Rc<RefCell<&'refer mut T>>,
-    priv varid: uint,
-    priv parser: &'refer mut ArgumentParser<'parser>,
+    cell: Rc<RefCell<&'refer mut T>>,
+    varid: uint,
+    parser: &'refer mut ArgumentParser<'parser>,
 }
 
 impl<'a, 'b, T> Ref<'a, 'b, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: ~[&'b str],
+    pub fn add_option<'x>(&'x mut self, names: &[&'b str],
         action: ~TypedAction<T>, help: &'b str)
         -> &'x mut Ref<'a, 'b, T>
     {
         {
-            let var = &mut self.parser.vars[self.varid];
+            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
             if var.metavar.len() == 0 {
                 let mut longest_name = names[0];
                 let mut llen = longest_name.len();
@@ -534,7 +534,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
             }
         }
         {
-            let var = &mut self.parser.vars[self.varid];
+            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
             if var.metavar.len() == 0 {
                 var.metavar = name.to_owned();
             }
@@ -542,12 +542,12 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         return self;
     }
 
-    pub fn metavar<'x>(&'x mut self, name: ~str)
+    pub fn metavar<'x>(&'x mut self, name: &str)
         -> &'x mut Ref<'a, 'b, T>
     {
         {
-            let var = &mut self.parser.vars[self.varid];
-            var.metavar = name;
+            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
+            var.metavar = name.to_owned();
         }
         return self;
     }
@@ -556,7 +556,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         -> &'x mut Ref<'a, 'b, T>
     {
         {
-            let var = &mut self.parser.vars[self.varid];
+            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
             var.required = true;
         }
         return self;
@@ -577,14 +577,14 @@ impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
 }
 
 pub struct ArgumentParser<'a> {
-    priv description: &'a str,
-    priv vars: ~[~Var<'a>],
-    priv options: ~[Rc<GenericOption<'a>>],
-    priv arguments: ~[Rc<GenericArgument<'a>>],
-    priv env_vars: ~[Rc<EnvVar<'a>>],
-    priv catchall_argument: Option<Rc<GenericArgument<'a>>>,
-    priv short_options: HashMap<char, Rc<GenericOption<'a>>>,
-    priv long_options: HashMap<~str, Rc<GenericOption<'a>>>,
+    description: &'a str,
+    vars: Vec<~Var<'a>>,
+    options: Vec<Rc<GenericOption<'a>>>,
+    arguments: Vec<Rc<GenericArgument<'a>>>,
+    env_vars: Vec<Rc<EnvVar<'a>>>,
+    catchall_argument: Option<Rc<GenericArgument<'a>>>,
+    short_options: HashMap<char, Rc<GenericOption<'a>>>,
+    long_options: HashMap<~str, Rc<GenericOption<'a>>>,
 }
 
 
@@ -595,15 +595,15 @@ impl<'parser> ArgumentParser<'parser> {
 
         let mut ap = ArgumentParser {
             description: "",
-            vars: ~[],
-            env_vars: ~[],
-            arguments: ~[],
+            vars: Vec::new(),
+            env_vars: Vec::new(),
+            arguments: Vec::new(),
             catchall_argument: None,
-            options: ~[],
+            options: Vec::new(),
             short_options: HashMap::new(),
             long_options: HashMap::new(),
             };
-        ap.add_option_for(None, ~["-h", "--help"], Flag(~HelpAction),
+        ap.add_option_for(None, ["-h", "--help"], Flag(~HelpAction),
             "show this help message and exit");
         return ap;
     }
@@ -616,7 +616,7 @@ impl<'parser> ArgumentParser<'parser> {
         self.vars.push(~Var {
                 id: id,
                 required: false,
-                metavar: ~"",
+                metavar: "".to_owned(),
                 });
         return ~Ref {
             cell: cell.clone(),
@@ -629,13 +629,14 @@ impl<'parser> ArgumentParser<'parser> {
         self.description = descr;
     }
 
-    fn add_option_for(&mut self, var: Option<uint>, names: ~[&'parser str],
+    fn add_option_for(&mut self, var: Option<uint>,
+        names: &[&'parser str],
         action: Action, help: &'parser str)
     {
         let opt = Rc::new(GenericOption {
             id: self.options.len(),
             varid: var,
-            names: names.clone(),
+            names: names.to_owned(),
             help: help,
             action: action,
             });
@@ -761,7 +762,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             Flag(_) => {}
             Single(_) | Push(_) | Many(_) => {
                 try!(self.buf.write_char(' '));
-                let var = &self.parser.vars[opt.varid.unwrap()];
+                let var = &self.parser.vars.as_slice()[opt.varid.unwrap()];
                 try!(self.buf.write_str(var.metavar));
                 num += var.metavar.len() + 1;
             }
@@ -823,7 +824,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 try!(self.buf.write_str(" [OPTIONS]"));
             }
             for opt in self.parser.arguments.iter() {
-                let var = &self.parser.vars[opt.varid];
+                let var = &self.parser.vars.as_slice()[opt.varid];
                 try!(self.buf.write_char(' '));
                 if !var.required {
                     try!(self.buf.write_char('['));
@@ -835,7 +836,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
-                    let var = &self.parser.vars[opt.varid];
+                    let var = &self.parser.vars.as_slice()[opt.varid];
                     try!(self.buf.write_char(' '));
                     if !var.required {
                         try!(self.buf.write_char('['));

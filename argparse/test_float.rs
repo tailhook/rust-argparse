@@ -9,13 +9,13 @@ fn test_incr_decr() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(~["-d", "--decr"], ~DecrBy(0.25),
+          .add_option(["-d", "--decr"], ~DecrBy(0.25),
             "Decrement value")
-          .add_option(~["-i", "--incr"], ~IncrBy(0.5),
+          .add_option(["-i", "--incr"], ~IncrBy(0.5),
             "Increment value");
         assert!(val == 0.5);
-        check_ok(&ap, ~[~"./argparse_test",
-            ~"-iiddd", ~"--incr", ~"-iii"]);
+        check_ok(&ap, ["./argparse_test",
+            "-iiddd", "--incr", "-iii"]);
     }
     assert_eq!(val, 2.75);
 }
@@ -25,9 +25,9 @@ fn test_float() {
     let mut val = 0.1;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(~["-s", "--set"], ~Store::<f64>,
+      .add_option(["-s", "--set"], ~Store::<f64>,
         "Set integer value");
-    check_ok(&ap, ~[~"./argparse_test", ~"-s", ~"15.125"]);
+    check_ok(&ap, ["./argparse_test", "-s", "15.125"]);
     assert_eq!(val, 15.125);
-    check_err(&ap, ~[~"./argparse_test", ~"-s", ~"test"]);
+    check_err(&ap, ["./argparse_test", "-s", "test"]);
 }

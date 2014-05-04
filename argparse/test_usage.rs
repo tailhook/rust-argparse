@@ -9,9 +9,9 @@ fn test_empty() {
     let ap = ArgumentParser::new();
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
-    assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test\n"
-        , from_utf8(buf.unwrap()).unwrap().to_owned());
+    assert_eq!("Usage:\n"
+        + "    ./argparse_test\n"
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
 }
 
 #[test]
@@ -19,13 +19,13 @@ fn test_options() {
     let mut ap = ArgumentParser::new();
     let mut val = 0;
     ap.refer(&mut val)
-      .add_option(~["--value"], ~Store::<int>,
+      .add_option(["--value"], ~Store::<int>,
         "Set integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
-    assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test [OPTIONS]\n"
-        , from_utf8(buf.unwrap()).unwrap().to_owned());
+    assert_eq!("Usage:\n"
+        + "    ./argparse_test [OPTIONS]\n"
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
 }
 
 #[test]
@@ -37,9 +37,9 @@ fn test_argument() {
         "Integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
-    assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test [VALUE]\n"
-        , from_utf8(buf.unwrap()).unwrap().to_owned());
+    assert_eq!("Usage:\n"
+        + "    ./argparse_test [VALUE]\n"
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn test_arguments() {
         "More values");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
-    assert_eq!(&"Usage:\n"
-        + &"    ./argparse_test [V1] [V2 ...]\n"
-        , from_utf8(buf.unwrap()).unwrap().to_owned());
+    assert_eq!("Usage:\n"
+        + "    ./argparse_test [V1] [V2 ...]\n"
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
 }
