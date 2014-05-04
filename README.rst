@@ -31,9 +31,11 @@ The following code is a simple Rust program with command-line arguments:
 
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
-        ap.refer(&mut verbose).add_option(~["-v", "--verbose"], ~StoreTrue,
+        ap.refer(&mut verbose)
+            .add_option(~["-v", "--verbose"], ~StoreTrue,
             "Be verbose");
-        ap.refer(&mut name).add_option(~["--name"], ~Store::<~str>,
+        ap.refer(&mut name)
+            .add_option(~["--name"], ~Store::<~str>,
             "Name for the greeting");
         match ap.parse_args() {
             Ok(()) => {}
@@ -54,7 +56,7 @@ what we have now::
 
     $ rustc greeting.rs
     $ ./greeting -h
-    Usage: ./greeting [-h] [-v|--verbose] [--name NAME]
+    Usage: ./greeting [OPTIONS]
 
     Greet somebody.
 
@@ -101,27 +103,35 @@ descriptions.
 Add Options
 -----------
 
-The ``add_option`` method adds an optional argument that starts with
-dash, or a double dash. Multiple aliases may be specified for an option.
+The ``refer`` method creates a cell variable, which the result will be written
+to:
+
+    let mut verbose = false;
+    parser.refer(&mut verbose);
+
+Next we add an options which control the variable:
 For example::
 
-    parser.add_option(~["-v", "--verbose"],
-        "Be verbose",
-        StoreTrue(cell(&mut verbose)));
+    parser.refer(&mut verbose)
+        .add_option(["-v", "--verbose"], ~StoreTrue,
+                    "Be verbose");
 
-In case you need several options that refer to the same variable, just create
-a cell variable::
+You made add multiple options for the same variable::
 
-    let verbose_option = cell(&mut verbose);
-    parser.add_option(~["-v", "--verbose"],
-        "Be verbose",
-        StoreTrue(verbose_option));
-    parser.add_option(~["-q", "--quiet"],
-        "Be verbose",
-        StoreFalse(verbose_option));
+    parser.refer(&mut verbose)
+        .add_option(["-v", "--verbose"], ~StoreTrue,
+                    "Be verbose")
+        .add_option(["-q", "--quiet"], ~StoreFalse,
+                    "Be verbose");
 
-Note that in both cases the lifetime of the borrow equals to the lifetime of
-the argument parser itself.
+Similarly positional arguments are added::
+
+    let mut command = ~str;
+    parser.refer(&mut command)
+        .add_argument("command", ~Store::<~str>,
+                      "Command to run");
+
+
 
 Organizing Options
 ------------------
@@ -134,42 +144,36 @@ easily borrow variables from the structure into option parser. For example::
     }
     ...
     let mut options = Options { verbose: false }
-    parser.add_option(~["-v"], "Be verbose",
-        StoreTrue(cell(&mut options.verbose)))
+    parser.refer(&mut options.verbose)
+        .add_option(["-v"], ~StoreTrue,
+                    "Be verbose");
+
 
 Parsing Arguments
 -----------------
 
-Just call::
+All the complex work is done in ``parser.parser_args()``, however, because
+no exit function exists in rust, some more lines of code needed to check
+the result::
 
-    parser.parse_args()
-
-And all the references are filled with values. Note that references used in
-argument parser are borrowed for the lifetime of the parser. It usually means
-that you may borrow variables again just after ``parser.parse_args()`` but in
-case you use ``parser.error()`` or some other methods later in the code, it
-may not be the case.
+    match parser.parse_args() {
+        Ok(()) =>  {}
+        Err(x) => {
+            os::set_exit_status(x);
+            return;
+        }
+    }
 
 
 ArgumentParser Methods
 ======================
 
-``parser.add_option(names:~[&str], helpstring: &str, action: Action)``
-    Add an option. Help string may be rewrapped. Returns
-    ``argparse::CliOption`` instance, which may be used to alter option's
-    properties.
-
-``parser.add_argument(name: &str, helpstring: &str, action: Action)``
-    Add positional argument. Works similarly to ``add_option``.
+``parser.refer<T>(&mut self, var: &mut T) -> Ref``
+    Attach the variable to argument parser. The options are added to the
+    returned ``Ref`` object and modify a variable passed to the method.
 
 ``parser.set_description(descr: &str)``
     Set description that is at the top of help message.
-
-``parser.disable_fromfile()``
-    Disables special handling of ``@``-prefixed arguments. By default ``@path``
-    argument on the command-line reads options from the file ``path``. Note:
-    ``@something`` at the place of the argument to the option passes this
-    literal value to the option.
 
 ``parser.print_usage(writer: Writer)``
     Prints usage string to stderr.
@@ -177,60 +181,108 @@ ArgumentParser Methods
 ``parser.print_help(writer: Writer)``
     Writes help to ``writer``, used by ``--help`` option internally.
 
-``parser.error(message: ~str)``
-    Print usage, adding the message and terminates program with exit status 2.
-    This method is useful if you have own validation on the command-line
-    arguments.
-
 ``parser.parse_args()``
     Method that does all the dirty work.
 
 
-CliOption Methods
-=================
+Variable Reference Methods
+==========================
 
-The ``argparse::CliOption`` object is returned from ``parser.add_option()`` or
-``parser.add_argument()`` method call.  The following methods are used to
-further customize arguments:
+The ``argparse::Ref`` object is returned from ``parser.refer()``.
+The following methods are used to add and customize arguments:
+
+``option.add_option(names: &[&str], action: ~TypedAction, help: &str)``
+    Add an option. All items in names should be either in format ``-X`` or
+    ``--long-option`` (i.e. one dash and one char or two dashes and long name).
+    How this option will be interpreted and whether it will have an argument
+    dependes on the action. See below list of actions.
+
+``option.add_argument(name: &str, action: ~TypedAction, help: &str)``
+    Add a positional argument
 
 ``option.metavar(var: &str)``
     A name of the argument in usage messages (for options having argument).
-    It's error to call it on options having no argument.
 
 ``option.envvar(var: &str)``
-    A name of the environment variable to get option value from
-
-``option.prompt(message: &str)``
-    Ask for the option value explicitly if it's not specified on the
-    command-line.
-
-``option.password_prompt(message: &str, confirm: bool)``
-    Similar to ``prompt`` but hides input, and optionally prompts for
-    confirmation.
+    A name of the environment variable to get option value from. The value
+    would be parsed with ``FromStr::from_str``, just like an option having
+    ``Store`` action.
 
 
 Actions
 =======
 
-In description of actions we refer to ``Cell<T>`` as pointer to a value
-typed ``T``. The actual type used is implementation detail. But you create
-a cell object using a function call ``argparse::cell(&mut var)`` where ``var``
-is a mutable variable (or field in a structure, whatever).
+The following actions are available out of the box. They may be used in either
+``add_option`` or ``add_argument``:
 
-The following actions are available out of the box
+``Store``
+    An option has single argument. Stores a value from command-line in a
+    variable. Any type that has ``FromStr`` trait implemented may be used. This
+    action must be specified with ``~Store::<TYPE>`` syntax, because of
+    limitation of rust type deriving algorithm. (Known types to work are all
+    integer and floating types, str and path).
+
+``StoreConst(value)``
+    An option has no arguments. Store a hard-coded ``value`` into variable,
+    when specified. Any type may be used.
+
+``StoreTrue``
+    Stores boolean ``true`` value in a variable.
+    (shortcut for ``StoreConst(true)``)
+
+``StoreFalse``
+    Stores boolean ``false`` value in a variable.
+    (shortcut for ``StoreConst(false)``)
 
 
-``StoreTrue(Cell<bool>)``
-    Stores boolean ``true`` value in a variable
+``IncrBy(num)``
+    An option has no arguments. Increments the value stored in a variable by a
+    value ``num``. Any type which has ``Add`` trait may be used.
 
-``StoreFalse(Cell<bool>)``
-    Stores boolean ``false`` value in a variable
+``DecrBy(nym)``
+    Decrements the value stored in a variable by a value ``num``. Any type
+    which has ``Add`` trait may be used.
 
-``SetInt(Cell<int>)``
-    Stores integer value from command-line in a variable
+``List``
+    When used for an ``--option``, requires single argument. When used for a
+    positional argument consumes all remaining arguments. Parsed options are
+    added to the list. I.e. a ``~List::<int>`` action requires a ``~[int]``
+    variable. Parses arguments using ``FromStr`` trait.
 
-``IncrInt(Cell<int>)``
-    Increments the value stored in a variable by one
+``Collect``
+    When used for positional argument, works the same as ``List``. When used
+    as an option, consumes all remaining arguments.
 
-``DecrInt(Cell<int>)``
-    Decrements the value stored in a variable by one
+    Note the usage of ``Collect`` is strongly discouraged, because of complex
+    rules below. Use ``List`` and positional options if possible. But usage of
+    ``Collect`` action may be useful if you need shell expansion of anything
+    other than last positional argument.
+
+    Let's learn rules by example. For the next options::
+
+        ap.refer(&mut lst1).add_option(["-X", "--xx"], ~List::<int>, "List1");
+        ap.refer(&mut lst2).add_argument("yy", ~List::<int>, "List2");
+
+    The following command line::
+
+        ./run 1 2 3 -X 4 5 6
+
+    Will return ``[1, 2, 3]`` in the ``lst1`` and the ``[4,5,6]`` in the
+    ``lst2``.
+
+    Note that using when using ``=`` or equivalent short option mode, the
+    'consume all' mode is not enabled. I.e. in the following command-line::
+
+        ./run 1 2 -X3 4 --xx=5 6
+
+    The ``lst1`` has ``[3, 5]`` and ``lst2`` has ``[1, 2, 4, 6]``.
+    The argument consuming also stops on ``--`` or the next option::
+
+        ./run: -X 1 2 3 -- 4 5 6
+        ./run: -X 1 2 --xx=3 4 5 6
+
+    Both of the above parse ``[4, 5, 6]`` as ``lst1`` and
+    the ``[1, 2, 3]`` as the ``lst2``.
+
+
+
