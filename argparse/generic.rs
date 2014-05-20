@@ -7,8 +7,6 @@ use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::{ParseResult, Parsed, Error};
 use super::action::{Flag, Single, Push, Many};
 
-mod action;
-
 pub struct StoreConst<T>(T);
 
 pub struct Store<T>;
@@ -39,31 +37,31 @@ pub struct ListAction<'a, T> {
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let StoreConst(val) = *self;
-        return Flag(~StoreConstAction { cell: cell, value: val });
+        return Flag(box StoreConstAction { cell: cell, value: val });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
-        return Single(~StoreAction { cell: cell });
+        return Single(box StoreAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action {
-        return Single(~StoreOptionAction { cell: cell });
+        return Single(box StoreOptionAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<~[T]> for List<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut ~[T]>>) -> Action {
-        return Many(~ListAction { cell: cell });
+        return Many(box ListAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<~[T]> for Collect<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut ~[T]>>) -> Action {
-        return Push(~ListAction { cell: cell });
+        return Push(box ListAction { cell: cell });
     }
 }
 
@@ -105,7 +103,7 @@ impl<'a, T: FromStr> IArgAction for StoreOptionAction<'a, T> {
 
 impl<'a, T: FromStr + Clone> IArgsAction for ListAction<'a, T> {
     fn parse_args(&self, args: &[&str]) -> ParseResult {
-        let mut result = ~Vec::new();
+        let mut result = box Vec::new();
         for arg in args.iter() {
             match FromStr::from_str(*arg) {
                 Some(x) => {

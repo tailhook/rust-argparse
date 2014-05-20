@@ -11,11 +11,11 @@ fn test_required() {
     let mut val1 = 1;
     let mut val2 = 2;
     ap.refer(&mut val1)
-        .add_option(["--v1"], ~Store::<int>, "The value 1")
-        .add_argument("v1", ~Store::<int>, "The value 1")
+        .add_option(["--v1"], box Store::<int>, "The value 1")
+        .add_argument("v1", box Store::<int>, "The value 1")
         .envvar("TEST_ENV_REQUIRED_V1")
         .required();
-    ap.refer(&mut val2).add_argument("v2", ~Store::<int>, "The value 2");
+    ap.refer(&mut val2).add_argument("v2", box Store::<int>, "The value 2");
     os::setenv("TEST_ENV_REQUIRED_V1", "some_crap");
     check_err(&ap, ["./argparse_test"]);
     check_ok(&ap, ["./argparse_test", "10"]);

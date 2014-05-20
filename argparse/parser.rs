@@ -72,7 +72,7 @@ struct GenericOption<'parser> {
 struct EnvVar<'parser> {
     varid: uint,
     name: &'parser str,
-    action: ~IArgAction,
+    action: Box<IArgAction>,
 }
 
 impl<'a> Hash for GenericOption<'a> {
@@ -429,7 +429,7 @@ impl<'a, 'b> Context<'a, 'b> {
         return Parsed;
     }
 
-    fn parse(parser: &ArgumentParser, args: &[~str], stderr: &mut Writer)
+    fn parse(parser: &ArgumentParser, args: &Vec<~str>, stderr: &mut Writer)
         -> ParseResult
     {
         let mut ctx = Context {
@@ -480,7 +480,7 @@ pub struct Ref<'refer, 'parser, T> {
 impl<'a, 'b, T> Ref<'a, 'b, T> {
 
     pub fn add_option<'x>(&'x mut self, names: &[&'b str],
-        action: ~TypedAction<T>, help: &'b str)
+        action: Box<TypedAction<T>>, help: &'b str)
         -> &'x mut Ref<'a, 'b, T>
     {
         {
@@ -507,7 +507,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn add_argument<'x>(&'x mut self, name: &'b str,
-        action: ~TypedAction<T>, help: &'b str)
+        action: Box<TypedAction<T>>, help: &'b str)
         -> &'x mut Ref<'a, 'b, T>
     {
         let act = action.bind(self.cell.clone());
@@ -570,7 +570,7 @@ impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
         self.parser.env_vars.push(Rc::new(EnvVar {
             varid: self.varid,
             name: varname,
-            action: ~StoreAction { cell: self.cell.clone() },
+            action: box StoreAction { cell: self.cell.clone() },
             }));
         return self;
     }
@@ -578,7 +578,7 @@ impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
 
 pub struct ArgumentParser<'a> {
     description: &'a str,
-    vars: Vec<~Var<'a>>,
+    vars: Vec<Box<Var<'a>>>,
     options: Vec<Rc<GenericOption<'a>>>,
     arguments: Vec<Rc<GenericArgument<'a>>>,
     env_vars: Vec<Rc<EnvVar<'a>>>,
@@ -603,22 +603,22 @@ impl<'parser> ArgumentParser<'parser> {
             short_options: HashMap::new(),
             long_options: HashMap::new(),
             };
-        ap.add_option_for(None, ["-h", "--help"], Flag(~HelpAction),
+        ap.add_option_for(None, ["-h", "--help"], Flag(box HelpAction),
             "show this help message and exit");
         return ap;
     }
 
     pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
-        -> ~Ref<'x, 'parser, T>
+        -> Box<Ref<'x, 'parser, T>>
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
-        self.vars.push(~Var {
+        self.vars.push(box Var {
                 id: id,
                 required: false,
                 metavar: "".to_owned(),
                 });
-        return ~Ref {
+        return box Ref {
             cell: cell.clone(),
             varid: id,
             parser: self,
@@ -641,7 +641,7 @@ impl<'parser> ArgumentParser<'parser> {
             action: action,
             });
 
-        if names.len() < 0 {
+        if names.len() < 1 {
             fail!("At least one name for option must be specified");
         }
         for nameptr in names.iter() {
@@ -675,19 +675,19 @@ impl<'parser> ArgumentParser<'parser> {
         return HelpFormatter::print_usage(self, name, writer);
     }
 
-    pub fn parse(&self, args: ~[~str],
+    pub fn parse(&self, args: Vec<~str>,
         stdout: &mut Writer, stderr: &mut Writer)
         -> Result<(), int>
     {
-        match Context::parse(self, args, stderr) {
+        match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(args[0], stdout).unwrap();
+                self.print_help(*args.get(0), stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(args[0], message, stderr);
+                self.error(*args.get(0), message, stderr);
                 return Err(2);
             }
         }

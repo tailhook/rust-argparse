@@ -7,7 +7,7 @@ fn test_opt() {
     let mut val = None;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-s", "--set"], ~StoreOption::<int>,
+      .add_option(["-s", "--set"], box StoreOption::<int>,
         "Set string value");
     assert_eq!(val, None);
     check_ok(&ap, ["./argparse_test"]);

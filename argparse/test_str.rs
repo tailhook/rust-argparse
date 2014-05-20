@@ -7,7 +7,7 @@ fn test_str() {
     let mut val: ~str = "".to_owned();
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-s", "--set"], ~Store::<~str>,
+      .add_option(["-s", "--set"], box Store::<~str>,
         "Set string value");
     check_ok(&ap, ["./argparse_test", "-s", "10"]);
     assert!(val == "10".to_owned());

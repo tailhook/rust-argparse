@@ -8,7 +8,7 @@ fn incr_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-i", "--incr"], ~IncrBy(1),
+      .add_option(["-i", "--incr"], box IncrBy(1),
         "Increment value");
     assert!(val == 0);
     check_ok(&ap, ["./argparse_test"]);
@@ -24,7 +24,7 @@ fn test_decr_int() {
     let mut val = 5;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-d", "--decr"], ~DecrBy(1),
+      .add_option(["-d", "--decr"], box DecrBy(1),
         "Decrement value");
     assert!(val == 5);
     check_ok(&ap, ["./argparse_test"]);
@@ -41,9 +41,9 @@ fn test_incr_decr() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(["-d", "--decr"], ~DecrBy(1),
+          .add_option(["-d", "--decr"], box DecrBy(1),
             "Decrement value")
-          .add_option(["-i", "--incr"], ~IncrBy(1),
+          .add_option(["-i", "--incr"], box IncrBy(1),
             "Increment value");
         assert!(val == 0);
         check_ok(&ap, ["./argparse_test",
@@ -57,7 +57,7 @@ fn test_int() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-s", "--set"], ~Store::<int>,
+      .add_option(["-s", "--set"], box Store::<int>,
         "Set integer value");
     check_ok(&ap, ["./argparse_test", "-s", "10"]);
     assert!(val == 10);
@@ -75,7 +75,7 @@ fn test_i16() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-s", "--set"], ~Store::<i16>,
+      .add_option(["-s", "--set"], box Store::<i16>,
         "Set integer value");
     check_ok(&ap, ["./argparse_test", "-s", "124"]);
     assert_eq!(val, 124);

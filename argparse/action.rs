@@ -10,10 +10,10 @@ pub enum ParseResult {
 
 
 pub enum Action {
-    Flag(~IFlagAction),
-    Single(~IArgAction),
-    Push(~IArgsAction),
-    Many(~IArgsAction),
+    Flag(Box<IFlagAction>),
+    Single(Box<IArgAction>),
+    Push(Box<IArgsAction>),
+    Many(Box<IArgsAction>),
 }
 
 pub trait TypedAction<T> {

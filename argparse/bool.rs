@@ -13,13 +13,13 @@ pub type StoreBool = Store<bool>;
 
 impl TypedAction<bool> for StoreTrue {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
-        return Flag(~StoreConstAction { cell: cell, value: true });
+        return Flag(box StoreConstAction { cell: cell, value: true });
     }
 }
 
 impl TypedAction<bool> for StoreFalse {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
-        return Flag(~StoreConstAction { cell: cell, value: false });
+        return Flag(box StoreConstAction { cell: cell, value: false });
     }
 }
 

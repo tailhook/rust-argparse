@@ -8,7 +8,7 @@ fn test_store_true() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut verbose)
-      .add_option(["-t", "--true"], ~StoreTrue,
+      .add_option(["-t", "--true"], box StoreTrue,
         "Store true action");
     assert!(!verbose);
     check_ok(&ap, ["./argparse_test"]);
@@ -22,7 +22,7 @@ fn test_store_false() {
     let mut verbose = true;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut verbose)
-      .add_option(["-f", "--false"], ~StoreFalse,
+      .add_option(["-f", "--false"], box StoreFalse,
         "Store false action");
     assert!(verbose);
     check_ok(&ap, ["./argparse_test"]);
@@ -36,9 +36,9 @@ fn test_bool() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut verbose)
-      .add_option(["-f", "--false"], ~StoreFalse,
+      .add_option(["-f", "--false"], box StoreFalse,
         "Store false action")
-      .add_option(["-t", "--true"], ~StoreTrue,
+      .add_option(["-t", "--true"], box StoreTrue,
         "Store false action");
     assert!(!verbose);
     check_ok(&ap, ["./argparse_test"]);
@@ -61,7 +61,7 @@ fn test_set_bool() {
     let mut verbose = false;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut verbose)
-      .add_option(["-s", "--set"], ~Store::<bool>,
+      .add_option(["-s", "--set"], box Store::<bool>,
         "Set boolean value");
     assert!(!verbose);
     check_ok(&ap, ["./argparse_test"]);

@@ -23,14 +23,14 @@ pub struct DecrByAction<'a, T> {
 impl<T: 'static + Add<T, T> + Copy> TypedAction<T> for IncrBy<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let IncrBy(delta) = *self;
-        return Flag(~IncrByAction { cell: cell, delta: delta });
+        return Flag(box IncrByAction { cell: cell, delta: delta });
     }
 }
 
 impl<T: 'static + Sub<T, T> + Copy> TypedAction<T> for DecrBy<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let DecrBy(delta) = *self;
-        return Flag(~DecrByAction { cell: cell, delta: delta });
+        return Flag(box DecrByAction { cell: cell, delta: delta });
     }
 }
 

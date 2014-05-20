@@ -11,8 +11,7 @@ pub fn check_ok(ap: &ArgumentParser, args: &[&str]) {
     for x in args.iter() {
         owned_args.push(x.to_owned());
     }
-    let res = ap.parse(owned_args.as_slice().to_owned(),
-        &mut stdout, &mut stderr);
+    let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Ok(()) => return,
         Err(x) => fail!(
@@ -29,8 +28,7 @@ pub fn check_exit(ap: &ArgumentParser, args: &[&str]) {
     for x in args.iter() {
         owned_args.push(x.to_owned());
     }
-    let res = ap.parse(owned_args.as_slice().to_owned(),
-        &mut stdout, &mut stderr);
+    let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(0) => return,
         Err(x) => fail!(format!("Expected code {} got {}", 0, x)),
@@ -46,8 +44,7 @@ pub fn check_err(ap: &ArgumentParser, args: &[&str]) {
     for x in args.iter() {
         owned_args.push(x.to_owned());
     }
-    let res = ap.parse(owned_args.as_slice().to_owned(),
-        &mut stdout, &mut stderr);
+    let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(2) => return,
         Err(x) => fail!(format!("Expected code {} got {}", 2, x)),

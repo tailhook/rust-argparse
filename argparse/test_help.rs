@@ -29,10 +29,10 @@ fn test_options() {
         to be very long, because we want to test how word wrapping works for
         it. So some more text would be ok for the test");
     ap.refer(&mut val)
-      .add_option(["--value"], ~Store::<int>,
+      .add_option(["--value"], box Store::<int>,
         "Set integer value");
     ap.refer(&mut val2)
-      .add_option(["-L", "--long-option"], ~Store::<int>,
+      .add_option(["-L", "--long-option"], box Store::<int>,
         "Long option value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
@@ -57,7 +57,7 @@ fn test_argument() {
     let mut val = 0;
     ap.set_description("Test program");
     ap.refer(&mut val)
-      .add_argument("value", ~Store::<int>,
+      .add_argument("value", box Store::<int>,
         "Integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
@@ -81,10 +81,10 @@ fn test_arguments() {
     let mut v2 = ~[];
     ap.set_description("Test program");
     ap.refer(&mut v1)
-      .add_argument("v1", ~Store::<int>,
+      .add_argument("v1", box Store::<int>,
         "Integer value 1");
     ap.refer(&mut v2)
-      .add_argument("v2", ~List::<int>,
+      .add_argument("v2", box List::<int>,
         "More values");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
@@ -109,11 +109,11 @@ fn test_req_arguments() {
     let mut v2 = ~[];
     ap.set_description("Test program");
     ap.refer(&mut v1)
-      .add_argument("v1", ~Store::<int>,
+      .add_argument("v1", box Store::<int>,
         "Integer value 1")
       .required();
     ap.refer(&mut v2)
-      .add_argument("v2", ~List::<int>,
+      .add_argument("v2", box List::<int>,
         "More values")
       .required();
     let mut buf = MemWriter::new();
@@ -138,7 +138,7 @@ fn test_metavar() {
     let mut val2 = 0;
     ap.set_description("Test program.");
     ap.refer(&mut val2)
-      .add_option(["-L", "--long-option"], ~Store::<int>,
+      .add_option(["-L", "--long-option"], box Store::<int>,
         "Long option value")
       .metavar("VAL");
     let mut buf = MemWriter::new();
