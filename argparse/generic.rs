@@ -7,7 +7,7 @@ use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::{ParseResult, Parsed, Error};
 use super::action::{Flag, Single, Push, Many};
 
-pub struct StoreConst<T>(T);
+pub struct StoreConst<T>(pub T);
 
 pub struct Store<T>;
 
