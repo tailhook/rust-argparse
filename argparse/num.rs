@@ -1,14 +1,11 @@
 use std::cell::RefCell;
 use std::rc::Rc;
 
+use super::{IncrBy, DecrBy};
 use super::action::{TypedAction, Action};
 use super::action::{ParseResult, Parsed};
 use super::action::IFlagAction;
 use super::action::Flag;
-
-pub struct IncrBy<T>(pub T);
-
-pub struct DecrBy<T>(pub T);
 
 pub struct IncrByAction<'a, T> {
     delta: T,

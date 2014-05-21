@@ -1,15 +1,8 @@
-/* The extern crate crashes current rust compiler (0.10) for some reason but
- * directly including a module in program works */
-//extern crate argparse;
-extern crate collections;
-
+extern crate argparse;
 
 use std::os;
 
 use argparse::{ArgumentParser, StoreTrue, Store};
-
-#[path="../argparse/mod.rs"]
-mod argparse;
 
 fn main() {
     let mut verbose = false;

@@ -2,20 +2,11 @@ use std::cell::RefCell;
 use std::from_str::FromStr;
 use std::rc::Rc;
 
+use super::{StoreConst, Store, StoreOption, List, Collect};
 use super::action::Action;
 use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::{ParseResult, Parsed, Error};
 use super::action::{Flag, Single, Push, Many};
-
-pub struct StoreConst<T>(pub T);
-
-pub struct Store<T>;
-
-pub struct StoreOption<T>;
-
-pub struct List<T>;
-
-pub struct Collect<T>;
 
 pub struct StoreConstAction<'a, T> {
     pub value: T,

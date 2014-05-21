@@ -1,7 +1,7 @@
 use std::os;
 
 use parser::ArgumentParser;
-use generic::Store;
+use super::Store;
 use test_parser::{check_ok, check_err};
 
 

@@ -2,7 +2,7 @@ use std::io::MemWriter;
 use std::str::from_utf8;
 
 use parser::ArgumentParser;
-use generic::{Store, List};
+use super::{Store, List};
 
 #[test]
 fn test_empty() {

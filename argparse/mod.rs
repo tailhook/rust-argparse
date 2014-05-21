@@ -1,13 +1,10 @@
 #![crate_id = "argparse#0.1"]
-#![crate_type = "lib"]
+#![crate_type = "dylib"]
 
 extern crate collections;
 extern crate arena;
 
 pub use self::parser::{ArgumentParser, Ref};
-pub use self::bool::{StoreTrue, StoreFalse, StoreBool};
-pub use self::num::{IncrBy, DecrBy};
-pub use self::generic::{Store, StoreOption, StoreConst, List, Collect};
 
 pub mod action;
 mod generic;
@@ -16,6 +13,27 @@ mod help;
 
 mod bool;
 mod num;
+
+pub struct StoreTrue;
+
+pub struct StoreFalse;
+
+pub struct StoreConst<T>(pub T);
+
+pub struct Store<T>;
+
+pub struct StoreOption<T>;
+
+pub struct List<T>;
+
+pub struct Collect<T>;
+
+pub struct IncrBy<T>(pub T);
+
+pub struct DecrBy<T>(pub T);
+
+pub type StoreBool = Store<bool>;
+
 
 #[cfg(test)] mod test_parser;
 #[cfg(test)] mod test_bool;

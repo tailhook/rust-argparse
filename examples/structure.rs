@@ -1,13 +1,10 @@
-//extern crate argparse;
-extern crate collections;
+extern crate argparse;
 
 
 use std::os;
 
 use argparse::{ArgumentParser, StoreTrue, Store};
 
-#[path="../argparse/mod.rs"]
-mod argparse;
 
 struct Options {
     verbose: bool,
