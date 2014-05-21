@@ -1,6 +1,6 @@
 use parser::ArgumentParser;
-use num::{IncrBy,DecrBy};
-use generic::Store;
+use super::{IncrBy,DecrBy};
+use super::Store;
 use test_parser::{check_ok,check_err};
 
 #[test]

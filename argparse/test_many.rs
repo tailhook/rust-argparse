@@ -1,5 +1,5 @@
 use parser::ArgumentParser;
-use generic::{List, Store, Collect};
+use super::{List, Store, Collect};
 use test_parser::{check_ok,check_err};
 
 #[test]

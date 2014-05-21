@@ -1,6 +1,6 @@
 use parser::ArgumentParser;
-use generic::Store;
-use bool::{StoreTrue, StoreFalse};
+use super::Store;
+use super::{StoreTrue, StoreFalse};
 use test_parser::{check_ok,check_err};
 
 #[test]

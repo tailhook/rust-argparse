@@ -1,5 +1,5 @@
 use parser::ArgumentParser;
-use generic::StoreOption;
+use super::StoreOption;
 use test_parser::{check_ok,check_err};
 
 #[test]

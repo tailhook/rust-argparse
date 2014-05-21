@@ -7,6 +7,22 @@ use super::action::Action;
 use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::{ParseResult, Parsed, Error};
 use super::action::{Flag, Single, Push, Many};
+
+<<<<<<< HEAD
+mod action;
+
+pub struct StoreConst<T>(T);
+
+pub struct Store<T>;
+
+pub struct StoreOption<T>;
+
+pub struct List<T>;
+
+pub struct Collect<T>;
+
+=======
+>>>>>>> 2e54b1a... Moved code around a bit to satisfy mozilla/rust@14337
 pub struct StoreConstAction<'a, T> {
     pub value: T,
     pub cell: Rc<RefCell<&'a mut T>>,

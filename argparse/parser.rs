@@ -123,7 +123,7 @@ impl<'parser> Eq for Var<'parser> {
 
 impl<'a> TotalEq for Var<'a> {}
 
-pub struct Context<'ctx, 'parser> {
+struct Context<'ctx, 'parser> {
     parser: &'ctx ArgumentParser<'parser>,
     set_vars: HashSet<uint>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
@@ -472,9 +472,9 @@ impl<'a, 'b> Context<'a, 'b> {
 }
 
 pub struct Ref<'refer, 'parser, T> {
-    cell: Rc<RefCell<&'refer mut T>>,
-    varid: uint,
-    parser: &'refer mut ArgumentParser<'parser>,
+    priv cell: Rc<RefCell<&'refer mut T>>,
+    priv varid: uint,
+    priv parser: &'refer mut ArgumentParser<'parser>,
 }
 
 impl<'a, 'b, T> Ref<'a, 'b, T> {
@@ -577,14 +577,14 @@ impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
 }
 
 pub struct ArgumentParser<'a> {
-    description: &'a str,
-    vars: Vec<~Var<'a>>,
-    options: Vec<Rc<GenericOption<'a>>>,
-    arguments: Vec<Rc<GenericArgument<'a>>>,
-    env_vars: Vec<Rc<EnvVar<'a>>>,
-    catchall_argument: Option<Rc<GenericArgument<'a>>>,
-    short_options: HashMap<char, Rc<GenericOption<'a>>>,
-    long_options: HashMap<~str, Rc<GenericOption<'a>>>,
+    priv description: &'a str,
+    priv vars: Vec<~Var<'a>>,
+    priv options: Vec<Rc<GenericOption<'a>>>,
+    priv arguments: Vec<Rc<GenericArgument<'a>>>,
+    priv env_vars: Vec<Rc<EnvVar<'a>>>,
+    priv catchall_argument: Option<Rc<GenericArgument<'a>>>,
+    priv short_options: HashMap<char, Rc<GenericOption<'a>>>,
+    priv long_options: HashMap<~str, Rc<GenericOption<'a>>>,
 }
 
 
@@ -703,7 +703,7 @@ impl<'parser> ArgumentParser<'parser> {
     }
 }
 
-pub struct HelpFormatter<'a, 'b> {
+struct HelpFormatter<'a, 'b> {
     name: &'a str,
     parser: &'a ArgumentParser<'b>,
     buf: &'a mut Writer,

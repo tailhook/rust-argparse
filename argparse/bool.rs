@@ -5,11 +5,8 @@ use super::action::Action;
 use super::action::TypedAction;
 use super::action::Flag;
 use super::generic::StoreConstAction;
-use super::generic::Store;
+use super::{StoreTrue, StoreFalse};
 
-pub struct StoreTrue;
-pub struct StoreFalse;
-pub type StoreBool = Store<bool>;
 
 impl TypedAction<bool> for StoreTrue {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
