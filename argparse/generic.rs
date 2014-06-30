@@ -22,7 +22,7 @@ pub struct StoreOptionAction<'a, T> {
 }
 
 pub struct ListAction<'a, T> {
-    cell: Rc<RefCell<&'a mut ~[T]>>,
+    cell: Rc<RefCell<&'a mut Vec<T>>>,
 }
 
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
@@ -44,14 +44,14 @@ impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption<T> {
     }
 }
 
-impl<T: 'static + FromStr + Clone> TypedAction<~[T]> for List<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut ~[T]>>) -> Action {
+impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List<T> {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
         return Many(box ListAction { cell: cell });
     }
 }
 
-impl<T: 'static + FromStr + Clone> TypedAction<~[T]> for Collect<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut ~[T]>>) -> Action {
+impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect<T> {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
         return Push(box ListAction { cell: cell });
     }
 }

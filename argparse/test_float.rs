@@ -9,9 +9,9 @@ fn test_incr_decr() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(["-d", "--decr"], box DecrBy(0.25),
+          .add_option(["-d", "--decr"], box DecrBy(0.25f32),
             "Decrement value")
-          .add_option(["-i", "--incr"], box IncrBy(0.5),
+          .add_option(["-i", "--incr"], box IncrBy(0.5f32),
             "Increment value");
         assert!(val == 0.5);
         check_ok(&ap, ["./argparse_test",

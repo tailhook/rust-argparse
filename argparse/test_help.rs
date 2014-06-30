@@ -10,14 +10,14 @@ fn test_empty() {
     let mut buf = MemWriter::new();
     ap.set_description("Test program");
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test\n"
         + "\n"
         + "Test program\n"
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }
 
 #[test]
@@ -36,7 +36,7 @@ fn test_options() {
         "Long option value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]
 
 Test program. The description of the program is ought to be very long, because
@@ -48,7 +48,7 @@ for the test\n"
         + "  --value VALUE         Set integer value\n"
         + "  -L,--long-option LONG_OPTION\n"
         + "                        Long option value\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }
 
 #[test]
@@ -61,7 +61,7 @@ fn test_argument() {
         "Integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [VALUE]\n"
         + "\n"
         + "Test program\n"
@@ -71,14 +71,14 @@ fn test_argument() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }
 
 #[test]
 fn test_arguments() {
     let mut ap = ArgumentParser::new();
     let mut v1 = 0;
-    let mut v2 = ~[];
+    let mut v2 = Vec::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
       .add_argument("v1", box Store::<int>,
@@ -88,7 +88,7 @@ fn test_arguments() {
         "More values");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [V1] [V2 ...]\n"
         + "\n"
         + "Test program\n"
@@ -99,14 +99,14 @@ fn test_arguments() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }
 
 #[test]
 fn test_req_arguments() {
     let mut ap = ArgumentParser::new();
     let mut v1 = 0;
-    let mut v2 = ~[];
+    let mut v2 = Vec::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
       .add_argument("v1", box Store::<int>,
@@ -118,7 +118,7 @@ fn test_req_arguments() {
       .required();
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test V1 V2 [...]\n"
         + "\n"
         + "Test program\n"
@@ -129,7 +129,7 @@ fn test_req_arguments() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn test_metavar() {
       .metavar("VAL");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
-    assert_eq!("Usage:\n"
+    assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]\n"
         + "\n"
         + "Test program.\n"
@@ -151,5 +151,5 @@ fn test_metavar() {
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  -L,--long-option VAL  Long option value\n"
-        , from_utf8(buf.unwrap().as_slice()).unwrap().to_owned());
+        , from_utf8(buf.unwrap().as_slice()).unwrap().to_string());
 }

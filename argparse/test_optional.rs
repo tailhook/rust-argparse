@@ -13,7 +13,7 @@ fn test_opt() {
     check_ok(&ap, ["./argparse_test"]);
     assert_eq!(val, None);
     check_ok(&ap, ["./argparse_test", "-s", "10"]);
-    assert_eq!(val, Some(10));
+    assert_eq!(val, Some(10i));
     check_ok(&ap, ["./argparse_test", "--set", "11"]);
     assert_eq!(val, Some(11));
     check_err(&ap, ["./argparse_test", "--set"]);

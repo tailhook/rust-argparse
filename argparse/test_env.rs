@@ -8,8 +8,8 @@ use test_parser::{check_ok, check_err};
 #[test]
 fn test_required() {
     let mut ap = ArgumentParser::new();
-    let mut val1 = 1;
-    let mut val2 = 2;
+    let mut val1 = 1i;
+    let mut val2 = 2i;
     ap.refer(&mut val1)
         .add_option(["--v1"], box Store::<int>, "The value 1")
         .add_argument("v1", box Store::<int>, "The value 1")

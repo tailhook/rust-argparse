@@ -5,7 +5,7 @@ pub enum ParseResult {
     Parsed,
     Help,
     Exit,
-    Error(~str),
+    Error(String),
 }
 
 

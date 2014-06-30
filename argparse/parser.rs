@@ -10,8 +10,8 @@ use std::hash::sip::SipState;
 use std::ascii::StrAsciiExt;
 use std::from_str::FromStr;
 
-use collections::hashmap::HashMap;
-use collections::hashmap::HashSet;
+use std::collections::hashmap::HashMap;
+use std::collections::hashmap::HashSet;
 
 use super::action::Action;
 use super::action::{ParseResult, Parsed, Help, Exit, Error};
@@ -64,7 +64,7 @@ struct GenericArgument<'parser> {
 struct GenericOption<'parser> {
     id: uint,
     varid: Option<uint>,
-    names: ~[&'parser str],
+    names: Vec<&'parser str>,
     help: &'parser str,
     action: Action,
 }
@@ -77,51 +77,51 @@ struct EnvVar<'parser> {
 
 impl<'a> Hash for GenericOption<'a> {
     fn hash(&self, state: &mut SipState) {
-        state.write_uint(self.id).unwrap();
+        self.id.hash(state);
     }
 }
 
-impl<'a> Eq for GenericOption<'a> {
+impl<'a> PartialEq for GenericOption<'a> {
     fn eq(&self, other: &GenericOption<'a>) -> bool {
         return self.id == other.id;
     }
 }
 
-impl<'a> TotalEq for GenericOption<'a> {}
+impl<'a> Eq for GenericOption<'a> {}
 
 impl<'a> Hash for GenericArgument<'a> {
     fn hash(&self, state: &mut SipState) {
-        state.write_uint(self.id).unwrap();
+        self.id.hash(state);
     }
 }
 
-impl<'a> Eq for GenericArgument<'a> {
+impl<'a> PartialEq for GenericArgument<'a> {
     fn eq(&self, other: &GenericArgument<'a>) -> bool {
         return self.id == other.id;
     }
 }
 
-impl<'a> TotalEq for GenericArgument<'a> {}
+impl<'a> Eq for GenericArgument<'a> {}
 
 pub struct Var<'parser> {
     id: uint,
-    metavar: ~str,
+    metavar: String,
     required: bool,
 }
 
 impl<'parser> Hash for Var<'parser> {
     fn hash(&self, state: &mut SipState) {
-        state.write_uint(self.id).unwrap();
+        self.id.hash(state);
     }
 }
 
-impl<'parser> Eq for Var<'parser> {
+impl<'parser> PartialEq for Var<'parser> {
     fn eq(&self, other: &Var<'parser>) -> bool {
         return self.id == other.id;
     }
 }
 
-impl<'a> TotalEq for Var<'a> {}
+impl<'a> Eq for Var<'a> {}
 
 pub struct Context<'ctx, 'parser> {
     parser: &'ctx ArgumentParser<'parser>,
@@ -129,7 +129,7 @@ pub struct Context<'ctx, 'parser> {
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
-    iter: Peekable<&'ctx ~str, Items<'ctx, ~str>>,
+    iter: Peekable<&'ctx String, Items<'ctx, String>>,
     stderr: &'ctx mut Writer,
 }
 
@@ -143,7 +143,7 @@ impl<'a, 'b> Context<'a, 'b> {
             Some(value) => value,
             None => match self.iter.next() {
                 Some(value) => {
-                    let argborrow: &'a str = *value;
+                    let argborrow: &'a str = value.as_slice();
                     argborrow
                 }
                 None => {
@@ -180,9 +180,11 @@ impl<'a, 'b> Context<'a, 'b> {
                 loop {
                     match self.iter.peek() {
                         None => { break; }
-                        Some(arg) if arg.starts_with("-") => { break; }
+                        Some(arg) if arg.as_slice().starts_with("-") => {
+                            break;
+                        }
                         Some(value) => {
-                            let argborrow: &'a str = **value;
+                            let argborrow: &'a str = value.as_slice();
                             vec.push(argborrow);
                         }
                     }
@@ -279,13 +281,13 @@ impl<'a, 'b> Context<'a, 'b> {
                 Some(arg) => { arg }
                 None => { break; }
             };
-            let res = match ArgumentKind::check(*arg) {
+            let res = match ArgumentKind::check(arg.as_slice()) {
                 Positional => {
-                    self.postpone_argument(*arg);
+                    self.postpone_argument(arg.as_slice());
                     continue;
                 }
-                LongOption => self.parse_long_option(*arg),
-                ShortOption => self.parse_short_options(*arg),
+                LongOption => self.parse_long_option(arg.as_slice()),
+                ShortOption => self.parse_short_options(arg.as_slice()),
                 Delimiter => break,
             };
             match res {
@@ -297,7 +299,7 @@ impl<'a, 'b> Context<'a, 'b> {
         loop {
             match self.iter.next() {
                 None => break,
-                Some(arg) => self.postpone_argument(*arg),
+                Some(arg) => self.postpone_argument(arg.as_slice()),
             }
         }
         return Parsed;
@@ -336,7 +338,7 @@ impl<'a, 'b> Context<'a, 'b> {
                         opt.clone(), Vec::new()).push(*arg);
                     Parsed
                 },
-                _ => fail!("Value {:?} / {:?}", opt, opt.action),
+                _ => unreachable!(),
             };
             match res {
                 Parsed => continue,
@@ -378,7 +380,7 @@ impl<'a, 'b> Context<'a, 'b> {
         for evar in self.parser.env_vars.iter() {
             match os::getenv(evar.name) {
                 Some(val) => {
-                    match evar.action.parse_arg(val) {
+                    match evar.action.parse_arg(val.as_slice()) {
                         Parsed => {
                             self.set_vars.insert(evar.varid);
                             continue;
@@ -386,9 +388,9 @@ impl<'a, 'b> Context<'a, 'b> {
                         Error(err) => {
                             self.stderr.write_str(format!(
                                 "WARNING: Environment variable {}: {}\n",
-                                evar.name, err)).ok();
+                                evar.name, err).as_slice()).ok();
                         }
-                        x => fail!(format!("Unexpected result {:?}", x)),
+                        _ => unreachable!(),
                     }
                 }
                 None => {}
@@ -429,7 +431,7 @@ impl<'a, 'b> Context<'a, 'b> {
         return Parsed;
     }
 
-    fn parse(parser: &ArgumentParser, args: &Vec<~str>, stderr: &mut Writer)
+    fn parse(parser: &ArgumentParser, args: &Vec<String>, stderr: &mut Writer)
         -> ParseResult
     {
         let mut ctx = Context {
@@ -536,7 +538,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
             if var.metavar.len() == 0 {
-                var.metavar = name.to_owned();
+                var.metavar = name.to_string();
             }
         }
         return self;
@@ -547,7 +549,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
-            var.metavar = name.to_owned();
+            var.metavar = name.to_string();
         }
         return self;
     }
@@ -584,7 +586,7 @@ pub struct ArgumentParser<'a> {
     env_vars: Vec<Rc<EnvVar<'a>>>,
     catchall_argument: Option<Rc<GenericArgument<'a>>>,
     short_options: HashMap<char, Rc<GenericOption<'a>>>,
-    long_options: HashMap<~str, Rc<GenericOption<'a>>>,
+    long_options: HashMap<String, Rc<GenericOption<'a>>>,
 }
 
 
@@ -616,7 +618,7 @@ impl<'parser> ArgumentParser<'parser> {
         self.vars.push(box Var {
                 id: id,
                 required: false,
-                metavar: "".to_owned(),
+                metavar: "".to_string(),
                 });
         return box Ref {
             cell: cell.clone(),
@@ -675,7 +677,7 @@ impl<'parser> ArgumentParser<'parser> {
         return HelpFormatter::print_usage(self, name, writer);
     }
 
-    pub fn parse(&self, args: Vec<~str>,
+    pub fn parse(&self, args: Vec<String>,
         stdout: &mut Writer, stderr: &mut Writer)
         -> Result<(), int>
     {
@@ -683,11 +685,11 @@ impl<'parser> ArgumentParser<'parser> {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(*args.get(0), stdout).unwrap();
+                self.print_help(args.get(0).as_slice(), stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(*args.get(0), message, stderr);
+                self.error(args.get(0).as_slice(), message.as_slice(), stderr);
                 return Err(2);
             }
         }
@@ -695,7 +697,9 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn error(&self, command: &str, message: &str, writer: &mut Writer) {
         self.print_usage(command, writer).unwrap();
-        writer.write_str(format!("{}: {}\n", command, message)).unwrap();
+        writer.write_str(
+            format!("{}: {}\n", command, message).as_slice()
+        ).unwrap();
     }
 
     pub fn parse_args(&self) -> Result<(), int> {
@@ -763,7 +767,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             Single(_) | Push(_) | Many(_) => {
                 try!(self.buf.write_char(' '));
                 let var = &self.parser.vars.as_slice()[opt.varid.unwrap()];
-                try!(self.buf.write_str(var.metavar));
+                try!(self.buf.write_str(var.metavar.as_slice()));
                 num += var.metavar.len() + 1;
             }
         }
@@ -829,7 +833,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 if !var.required {
                     try!(self.buf.write_char('['));
                 }
-                try!(self.buf.write_str(opt.name.to_ascii_upper()));
+                try!(self.buf.write_str(opt.name.to_ascii_upper().as_slice()));
                 if !var.required {
                     try!(self.buf.write_char(']'));
                 }
@@ -841,7 +845,8 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                     if !var.required {
                         try!(self.buf.write_char('['));
                     }
-                    try!(self.buf.write_str(opt.name.to_ascii_upper()));
+                    try!(self.buf.write_str(
+                        opt.name.to_ascii_upper().as_slice()));
                     if !var.required {
                         try!(self.buf.write_str(" ...]"));
                     } else {
