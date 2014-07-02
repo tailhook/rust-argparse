@@ -123,7 +123,7 @@ impl<'parser> PartialEq for Var<'parser> {
 
 impl<'a> Eq for Var<'a> {}
 
-pub struct Context<'ctx, 'parser> {
+struct Context<'ctx, 'parser> {
     parser: &'ctx ArgumentParser<'parser>,
     set_vars: HashSet<uint>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
@@ -474,9 +474,9 @@ impl<'a, 'b> Context<'a, 'b> {
 }
 
 pub struct Ref<'refer, 'parser, T> {
-    cell: Rc<RefCell<&'refer mut T>>,
-    varid: uint,
-    parser: &'refer mut ArgumentParser<'parser>,
+    priv cell: Rc<RefCell<&'refer mut T>>,
+    priv varid: uint,
+    priv parser: &'refer mut ArgumentParser<'parser>,
 }
 
 impl<'a, 'b, T> Ref<'a, 'b, T> {
@@ -707,7 +707,7 @@ impl<'parser> ArgumentParser<'parser> {
     }
 }
 
-pub struct HelpFormatter<'a, 'b> {
+struct HelpFormatter<'a, 'b> {
     name: &'a str,
     parser: &'a ArgumentParser<'b>,
     buf: &'a mut Writer,

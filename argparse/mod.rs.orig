@@ -1,5 +1,10 @@
+<<<<<<< HEAD
+#![crate_id = "argparse"]
+#![crate_type = "lib"]
+=======
 #![crate_id = "argparse#0.1"]
 #![crate_type = "dylib"]
+>>>>>>> 2e54b1a... Moved code around a bit to satisfy mozilla/rust@14337
 
 extern crate collections;
 extern crate arena;
@@ -7,8 +12,8 @@ extern crate arena;
 pub use self::parser::{ArgumentParser, Ref};
 
 pub mod action;
-pub mod parser;
 mod generic;
+mod parser;
 mod help;
 
 mod bool;
