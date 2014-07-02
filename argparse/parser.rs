@@ -474,9 +474,9 @@ impl<'a, 'b> Context<'a, 'b> {
 }
 
 pub struct Ref<'refer, 'parser, T> {
-    priv cell: Rc<RefCell<&'refer mut T>>,
-    priv varid: uint,
-    priv parser: &'refer mut ArgumentParser<'parser>,
+    cell: Rc<RefCell<&'refer mut T>>,
+    varid: uint,
+    parser: &'refer mut ArgumentParser<'parser>,
 }
 
 impl<'a, 'b, T> Ref<'a, 'b, T> {
