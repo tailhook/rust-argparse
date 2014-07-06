@@ -1,2 +1,7 @@
 *.o
+*.so
 /argparse_test
+
+# examples
+/greeting
+/structure
