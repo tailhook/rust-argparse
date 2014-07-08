@@ -284,6 +284,9 @@ impl<'a, 'b> Context<'a, 'b> {
             let res = match ArgumentKind::check(arg.as_slice()) {
                 Positional => {
                     self.postpone_argument(arg.as_slice());
+                    if self.parser.stop_on_first_argument {
+                        break;
+                    }
                     continue;
                 }
                 LongOption => self.parse_long_option(arg.as_slice()),
@@ -587,6 +590,7 @@ pub struct ArgumentParser<'a> {
     catchall_argument: Option<Rc<GenericArgument<'a>>>,
     short_options: HashMap<char, Rc<GenericOption<'a>>>,
     long_options: HashMap<String, Rc<GenericOption<'a>>>,
+    stop_on_first_argument: bool,
 }
 
 
@@ -604,6 +608,7 @@ impl<'parser> ArgumentParser<'parser> {
             options: Vec::new(),
             short_options: HashMap::new(),
             long_options: HashMap::new(),
+            stop_on_first_argument: false,
             };
         ap.add_option_for(None, ["-h", "--help"], Flag(box HelpAction),
             "show this help message and exit");
@@ -700,6 +705,10 @@ impl<'parser> ArgumentParser<'parser> {
         writer.write_str(
             format!("{}: {}\n", command, message).as_slice()
         ).unwrap();
+    }
+
+    pub fn stop_on_first_argument(&mut self, want_stop: bool) {
+        self.stop_on_first_argument = want_stop;
     }
 
     pub fn parse_args(&self) -> Result<(), int> {

@@ -175,6 +175,12 @@ ArgumentParser Methods
 ``parser.set_description(descr: &str)``
     Set description that is at the top of help message.
 
+``parser.stop_on_first_argument(val: bool)``
+    If called with ``true``. Parser will stop searching for options when first
+    non-option (the one doesn't start with ``-``) argument is encountered. This
+    is useful if you want to parse following options with another argparser or
+    external program.
+
 ``parser.print_usage(writer: Writer)``
     Prints usage string to stderr.
 
