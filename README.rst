@@ -249,19 +249,19 @@ The following actions are available out of the box. They may be used in either
     Decrements the value stored in a variable by a value ``num``. Any type
     which has ``Add`` trait may be used.
 
-``List``
+``Collect``
     When used for an ``--option``, requires single argument. When used for a
     positional argument consumes all remaining arguments. Parsed options are
     added to the list. I.e. a ``box List::<int>`` action requires a ``Vec<int>``
     variable. Parses arguments using ``FromStr`` trait.
 
-``Collect``
+``List``
     When used for positional argument, works the same as ``List``. When used
     as an option, consumes all remaining arguments.
 
-    Note the usage of ``Collect`` is strongly discouraged, because of complex
-    rules below. Use ``List`` and positional options if possible. But usage of
-    ``Collect`` action may be useful if you need shell expansion of anything
+    Note the usage of ``List`` is strongly discouraged, because of complex
+    rules below. Use ``Collect`` and positional options if possible. But usage
+    of ``List`` action may be useful if you need shell expansion of anything
     other than last positional argument.
 
     Let's learn rules by example. For the next options::
