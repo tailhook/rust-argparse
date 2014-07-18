@@ -1,4 +1,4 @@
-LIBNAME := $(shell rustc --crate-file-name argparse/mod.rs)
+LIBNAME := $(shell rustc --print-file-name argparse/mod.rs)
 
 
 all: argparse-lib

@@ -1,4 +1,4 @@
-#![crate_id = "argparse#0.1"]
+#![crate_name = "argparse"]
 #![crate_type = "dylib"]
 
 extern crate collections;
