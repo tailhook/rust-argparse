@@ -661,7 +661,7 @@ impl<'parser> ArgumentParser<'parser> {
                         fail!("Bad short argument {}", name);
                     }
                     self.short_options.insert(
-                        name[1] as char, opt.clone());
+                        name.as_bytes()[1] as char, opt.clone());
                 }
             }
         }
