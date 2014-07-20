@@ -1,2 +1,3 @@
 *.o
 /argparse_test
+/target
