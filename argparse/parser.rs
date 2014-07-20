@@ -200,7 +200,7 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut equals_iter = arg.splitn('=', 1);
         let optname = equals_iter.next().unwrap();
         let valueref = equals_iter.next();
-        let opt = self.parser.long_options.find(&optname.to_str());
+        let opt = self.parser.long_options.find(&optname.to_string());
         match opt {
             Some(opt) => {
                 match opt.action {
@@ -638,7 +638,7 @@ impl<'parser> ArgumentParser<'parser> {
         let opt = Rc::new(GenericOption {
             id: self.options.len(),
             varid: var,
-            names: names.to_owned(),
+            names: names.to_vec(),
             help: help,
             action: action,
             });
@@ -654,7 +654,7 @@ impl<'parser> ArgumentParser<'parser> {
                 }
                 LongOption => {
                     self.long_options.insert(
-                        name.to_str(), opt.clone());
+                        name.to_string(), opt.clone());
                 }
                 ShortOption => {
                     if name.len() > 2 {
@@ -685,11 +685,11 @@ impl<'parser> ArgumentParser<'parser> {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(args.get(0).as_slice(), stdout).unwrap();
+                self.print_help(args[0].as_slice(), stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(args.get(0).as_slice(), message.as_slice(), stderr);
+                self.error(args[0].as_slice(), message.as_slice(), stderr);
                 return Err(2);
             }
         }

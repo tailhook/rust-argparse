@@ -105,7 +105,7 @@ impl<'a, T: FromStr + Clone> IArgsAction for ListAction<'a, T> {
                 }
             }
         }
-        **self.cell.borrow_mut() = result.as_slice().to_owned();
+        **self.cell.borrow_mut() = result.as_slice().to_vec();
         return Parsed;
     }
 }
