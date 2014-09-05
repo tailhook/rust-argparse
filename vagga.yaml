@@ -1,0 +1,15 @@
+containers:
+
+  build:
+    builder: ubuntu
+    parameters:
+      PPAs: hansjorg/rust
+      additional_keys: 37FD5E80BD6B6386  # for rust
+      packages: make rust-nightly gcc
+
+commands:
+
+  make:
+    container: build
+    command: make
+
