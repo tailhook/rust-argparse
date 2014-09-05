@@ -1,5 +1,5 @@
 #![crate_name = "argparse"]
-#![crate_type = "dylib"]
+#![crate_type = "lib"]
 
 extern crate collections;
 extern crate arena;
@@ -7,8 +7,8 @@ extern crate arena;
 pub use self::parser::{ArgumentParser, Ref};
 
 pub mod action;
+pub mod parser;
 mod generic;
-mod parser;
 mod help;
 
 mod bool;

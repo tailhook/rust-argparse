@@ -27,15 +27,15 @@ The following code is a simple Rust program with command-line arguments:
 
     fn main() {
         let mut verbose = false;
-        let mut name = ~"World";
+        let mut name = "World".to_string();
 
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
         ap.refer(&mut verbose)
-            .add_option(~["-v", "--verbose"], ~StoreTrue,
+            .add_option(["-v", "--verbose"], box StoreTrue,
             "Be verbose");
         ap.refer(&mut name)
-            .add_option(~["--name"], ~Store::<~str>,
+            .add_option(["--name"], box Store::<String>,
             "Name for the greeting");
         match ap.parse_args() {
             Ok(()) => {}
@@ -113,22 +113,22 @@ Next we add an options which control the variable:
 For example::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], ~StoreTrue,
+        .add_option(["-v", "--verbose"], box StoreTrue,
                     "Be verbose");
 
 You made add multiple options for the same variable::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], ~StoreTrue,
+        .add_option(["-v", "--verbose"], box StoreTrue,
                     "Be verbose")
-        .add_option(["-q", "--quiet"], ~StoreFalse,
+        .add_option(["-q", "--quiet"], box StoreFalse,
                     "Be verbose");
 
 Similarly positional arguments are added::
 
-    let mut command = ~str;
+    let mut command = String;
     parser.refer(&mut command)
-        .add_argument("command", ~Store::<~str>,
+        .add_argument("command", box Store::<String>,
                       "Command to run");
 
 
@@ -145,7 +145,7 @@ easily borrow variables from the structure into option parser. For example::
     ...
     let mut options = Options { verbose: false }
     parser.refer(&mut options.verbose)
-        .add_option(["-v"], ~StoreTrue,
+        .add_option(["-v"], box StoreTrue,
                     "Be verbose");
 
 
@@ -175,6 +175,12 @@ ArgumentParser Methods
 ``parser.set_description(descr: &str)``
     Set description that is at the top of help message.
 
+``parser.stop_on_first_argument(val: bool)``
+    If called with ``true``. Parser will stop searching for options when first
+    non-option (the one doesn't start with ``-``) argument is encountered. This
+    is useful if you want to parse following options with another argparser or
+    external program.
+
 ``parser.print_usage(writer: Writer)``
     Prints usage string to stderr.
 
@@ -191,13 +197,13 @@ Variable Reference Methods
 The ``argparse::Ref`` object is returned from ``parser.refer()``.
 The following methods are used to add and customize arguments:
 
-``option.add_option(names: &[&str], action: ~TypedAction, help: &str)``
+``option.add_option(names: &[&str], action: box TypedAction, help: &str)``
     Add an option. All items in names should be either in format ``-X`` or
     ``--long-option`` (i.e. one dash and one char or two dashes and long name).
     How this option will be interpreted and whether it will have an argument
     dependes on the action. See below list of actions.
 
-``option.add_argument(name: &str, action: ~TypedAction, help: &str)``
+``option.add_argument(name: &str, action: box TypedAction, help: &str)``
     Add a positional argument
 
 ``option.metavar(var: &str)``
@@ -218,7 +224,7 @@ The following actions are available out of the box. They may be used in either
 ``Store``
     An option has single argument. Stores a value from command-line in a
     variable. Any type that has ``FromStr`` trait implemented may be used. This
-    action must be specified with ``~Store::<TYPE>`` syntax, because of
+    action must be specified with ``box Store::<TYPE>`` syntax, because of
     limitation of rust type deriving algorithm. (Known types to work are all
     integer and floating types, str and path).
 
@@ -243,25 +249,25 @@ The following actions are available out of the box. They may be used in either
     Decrements the value stored in a variable by a value ``num``. Any type
     which has ``Add`` trait may be used.
 
-``List``
+``Collect``
     When used for an ``--option``, requires single argument. When used for a
     positional argument consumes all remaining arguments. Parsed options are
-    added to the list. I.e. a ``~List::<int>`` action requires a ``~[int]``
+    added to the list. I.e. a ``box List::<int>`` action requires a ``Vec<int>``
     variable. Parses arguments using ``FromStr`` trait.
 
-``Collect``
+``List``
     When used for positional argument, works the same as ``List``. When used
     as an option, consumes all remaining arguments.
 
-    Note the usage of ``Collect`` is strongly discouraged, because of complex
-    rules below. Use ``List`` and positional options if possible. But usage of
-    ``Collect`` action may be useful if you need shell expansion of anything
+    Note the usage of ``List`` is strongly discouraged, because of complex
+    rules below. Use ``Collect`` and positional options if possible. But usage
+    of ``List`` action may be useful if you need shell expansion of anything
     other than last positional argument.
 
     Let's learn rules by example. For the next options::
 
-        ap.refer(&mut lst1).add_option(["-X", "--xx"], ~List::<int>, "List1");
-        ap.refer(&mut lst2).add_argument("yy", ~List::<int>, "List2");
+        ap.refer(&mut lst1).add_option(["-X", "--xx"], box List::<int>, "List1");
+        ap.refer(&mut lst2).add_argument("yy", box List::<int>, "List2");
 
     The following command line::
 
