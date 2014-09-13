@@ -7,12 +7,12 @@ use super::action::{ParseResult, Parsed};
 use super::action::IFlagAction;
 use super::action::Flag;
 
-pub struct IncrByAction<'a, T> {
+pub struct IncrByAction<'a, T: 'a> {
     delta: T,
     cell: Rc<RefCell<&'a mut T>>,
 }
 
-pub struct DecrByAction<'a, T> {
+pub struct DecrByAction<'a, T: 'a> {
     delta: T,
     cell: Rc<RefCell<&'a mut T>>,
 }

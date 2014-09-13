@@ -58,7 +58,7 @@ struct GenericArgument<'parser> {
     varid: uint,
     name: &'parser str,
     help: &'parser str,
-    action: Action,
+    action: Action<'parser>,
 }
 
 struct GenericOption<'parser> {
@@ -66,13 +66,13 @@ struct GenericOption<'parser> {
     varid: Option<uint>,
     names: Vec<&'parser str>,
     help: &'parser str,
-    action: Action,
+    action: Action<'parser>,
 }
 
 struct EnvVar<'parser> {
     varid: uint,
     name: &'parser str,
-    action: Box<IArgAction>,
+    action: Box<IArgAction + 'parser>,
 }
 
 impl<'a> Hash for GenericOption<'a> {
@@ -123,14 +123,14 @@ impl<'parser> PartialEq for Var<'parser> {
 
 impl<'a> Eq for Var<'a> {}
 
-struct Context<'ctx, 'parser> {
+struct Context<'ctx, 'parser: 'ctx> {
     parser: &'ctx ArgumentParser<'parser>,
     set_vars: HashSet<uint>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
     iter: Peekable<&'ctx String, Items<'ctx, String>>,
-    stderr: &'ctx mut Writer,
+    stderr: &'ctx mut Writer + 'ctx,
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -197,7 +197,7 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 
     fn parse_long_option(&mut self, arg: &'a str) -> ParseResult {
-        let mut equals_iter = arg.splitn('=', 1);
+        let mut equals_iter = arg.splitn(1, '=');
         let optname = equals_iter.next().unwrap();
         let valueref = equals_iter.next();
         let opt = self.parser.long_options.find(&optname.to_string());
@@ -476,7 +476,7 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-pub struct Ref<'refer, 'parser, T> {
+pub struct Ref<'refer, 'parser: 'refer, T: 'refer> {
     cell: Rc<RefCell<&'refer mut T>>,
     varid: uint,
     parser: &'refer mut ArgumentParser<'parser>,
@@ -597,7 +597,7 @@ pub struct ArgumentParser<'a> {
 
 impl<'parser> ArgumentParser<'parser> {
 
-    pub fn new() -> ArgumentParser {
+    pub fn new() -> ArgumentParser<'parser> {
 
         let mut ap = ArgumentParser {
             description: "",
@@ -716,10 +716,10 @@ impl<'parser> ArgumentParser<'parser> {
     }
 }
 
-struct HelpFormatter<'a, 'b> {
+struct HelpFormatter<'a, 'b: 'a> {
     name: &'a str,
     parser: &'a ArgumentParser<'b>,
-    buf: &'a mut Writer,
+    buf: &'a mut Writer + 'a,
 }
 
 impl<'a, 'b> HelpFormatter<'a, 'b> {

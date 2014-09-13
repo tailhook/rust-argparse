@@ -9,11 +9,11 @@ pub enum ParseResult {
 }
 
 
-pub enum Action {
-    Flag(Box<IFlagAction>),
-    Single(Box<IArgAction>),
-    Push(Box<IArgsAction>),
-    Many(Box<IArgsAction>),
+pub enum Action<'a> {
+    Flag(Box<IFlagAction + 'a>),
+    Single(Box<IArgAction + 'a>),
+    Push(Box<IArgsAction + 'a>),
+    Many(Box<IArgsAction + 'a>),
 }
 
 pub trait TypedAction<T> {

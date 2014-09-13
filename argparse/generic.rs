@@ -8,20 +8,20 @@ use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::{ParseResult, Parsed, Error};
 use super::action::{Flag, Single, Push, Many};
 
-pub struct StoreConstAction<'a, T> {
+pub struct StoreConstAction<'a, T: 'a> {
     pub value: T,
     pub cell: Rc<RefCell<&'a mut T>>,
 }
 
-pub struct StoreAction<'a, T> {
+pub struct StoreAction<'a, T: 'a> {
     pub cell: Rc<RefCell<&'a mut T>>,
 }
 
-pub struct StoreOptionAction<'a, T> {
+pub struct StoreOptionAction<'a, T: 'a> {
     cell: Rc<RefCell<&'a mut Option<T>>>,
 }
 
-pub struct ListAction<'a, T> {
+pub struct ListAction<'a, T: 'a> {
     cell: Rc<RefCell<&'a mut Vec<T>>>,
 }
 
