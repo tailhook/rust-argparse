@@ -57,10 +57,10 @@ fn test_list() {
     ap.refer(&mut vec).add_option(["-a", "--add"], box List::<int>,
         "The list of vals");
     check_ok(&ap, ["./argparse_test", "-a10"]);
-    assert_eq!(vec.as_slice(), &[10i]);
+    assert!(vec.as_slice() == [10i]);
     check_ok(&ap, ["./argparse_test", "--add", "11", "21"]);
-    assert_eq!(vec.as_slice(), &[11, 21]);
+    assert!(vec.as_slice() == [11, 21]);
     check_ok(&ap, ["./argparse_test", "-a", "10", "20", "30"]);
-    assert_eq!(vec.as_slice(), &[10, 20, 30]);
+    assert!(vec.as_slice() == [10, 20, 30]);
     check_err(&ap, ["./argparse_test", "10", "20", "30"]);
 }

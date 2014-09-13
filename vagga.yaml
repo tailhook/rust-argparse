@@ -13,3 +13,8 @@ commands:
     container: build
     command: make
 
+  test:
+    container: build
+    command: [make, test]
+
+
