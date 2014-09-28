@@ -1,5 +1,2 @@
 language: rust
 rust: 0.11.0
-script:
-- make
-- make test
