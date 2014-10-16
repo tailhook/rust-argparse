@@ -4,7 +4,7 @@ name = "argparse"
 version = "0.1.0"
 authors = ["paul@colomiets.name"]
 
-[[lib]]
+[lib]
 
 name = "argparse"
 path = "argparse/mod.rs"
