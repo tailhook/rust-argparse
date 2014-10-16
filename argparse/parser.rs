@@ -10,7 +10,7 @@ use std::hash::sip::SipState;
 use std::ascii::StrAsciiExt;
 use std::from_str::FromStr;
 
-use std::collections::hashmap::HashMap;
+use std::collections::hashmap::{HashMap, Vacant, Occupied};
 use std::collections::hashmap::HashSet;
 
 use super::action::Action;
@@ -164,14 +164,17 @@ impl<'a, 'b> Context<'a, 'b> {
                 return action.parse_arg(value);
             }
             Push(_) => {
-                let vec = self.list_options.find_or_insert(
-                    opt.clone(), Vec::new());
-                vec.push(value);
+                (match self.list_options.entry(opt.clone()) {
+                    Occupied(occ) => occ.into_mut(),
+                    Vacant(vac) => vac.set(Vec::new()),
+                }).push(value);
                 return Parsed;
             }
             Many(_) => {
-                let vec = self.list_options.find_or_insert(
-                    opt.clone(), Vec::new());
+                let vec = match self.list_options.entry(opt.clone()) {
+                    Occupied(occ) => occ.into_mut(),
+                    Vacant(vac) => vac.set(Vec::new()),
+                };
                 vec.push(value);
                 match optarg {
                     Some(_) => return Parsed,
@@ -337,8 +340,10 @@ impl<'a, 'b> Context<'a, 'b> {
                     act.parse_arg(*arg)
                 },
                 Many(_) | Push(_) => {
-                    self.list_arguments.find_or_insert(
-                        opt.clone(), Vec::new()).push(*arg);
+                    (match self.list_arguments.entry(opt.clone()) {
+                        Occupied(occ) => occ.into_mut(),
+                        Vacant(vac) => vac.set(Vec::new()),
+                    }).push(*arg);
                     Parsed
                 },
                 _ => unreachable!(),
