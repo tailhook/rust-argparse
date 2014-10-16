@@ -1,4 +1,4 @@
-LIBNAME := $(shell rustc --print-file-name argparse/mod.rs)
+LIBNAME := $(shell rustc --print-file-name src/lib.rs)
 
 
 all: argparse-lib
@@ -6,12 +6,12 @@ all: argparse-lib
 test: argparse_test
 	./argparse_test
 
-argparse_test: argparse/mod.rs argparse/*.rs
+argparse_test: src/lib.rs src/*.rs
 	rustc -o $@ --test $<
 
 argparse-lib: $(LIBNAME)
 
-$(LIBNAME): argparse/mod.rs argparse/*.rs
+$(LIBNAME): src/lib.rs src/*.rs
 	rustc -o $@ $<
 
 examples: greeting structure
