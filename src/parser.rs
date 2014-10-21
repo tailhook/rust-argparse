@@ -7,7 +7,7 @@ use std::iter::Peekable;
 use std::slice::Items;
 use std::hash::Hash;
 use std::hash::sip::SipState;
-use std::ascii::StrAsciiExt;
+use std::ascii::AsciiExt;
 use std::from_str::FromStr;
 
 use std::collections::hashmap::{HashMap, Vacant, Occupied};
