@@ -17,7 +17,7 @@ pub enum Action<'a> {
 }
 
 pub trait TypedAction<T> {
-    fn bind<'x>(&self, Rc<RefCell<&'x mut T>>) -> Action;
+    fn bind<'x>(&'x self, Rc<RefCell<&'x mut T>>) -> Action;
 }
 
 pub trait IFlagAction {

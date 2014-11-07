@@ -26,32 +26,32 @@ pub struct ListAction<'a, T: 'a> {
 }
 
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         let StoreConst(val) = *self;
         return Flag(box StoreConstAction { cell: cell, value: val });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut T>>) -> Action {
         return Single(box StoreAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action {
         return Single(box StoreOptionAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
         return Many(box ListAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
         return Push(box ListAction { cell: cell });
     }
 }

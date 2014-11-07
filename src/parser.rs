@@ -644,7 +644,7 @@ impl<'parser> ArgumentParser<'parser> {
 
     fn add_option_for(&mut self, var: Option<uint>,
         names: &[&'parser str],
-        action: Action, help: &'parser str)
+        action: Action<'parser>, help: &'parser str)
     {
         let opt = Rc::new(GenericOption {
             id: self.options.len(),
