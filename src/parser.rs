@@ -10,8 +10,9 @@ use std::hash::sip::SipState;
 use std::ascii::AsciiExt;
 use std::from_str::FromStr;
 
-use std::collections::hashmap::{HashMap, Vacant, Occupied};
-use std::collections::hashmap::HashSet;
+use std::collections::HashMap;
+use std::collections::hash_map::{Vacant, Occupied};
+use std::collections::HashSet;
 
 use super::action::Action;
 use super::action::{ParseResult, Parsed, Help, Exit, Error};
