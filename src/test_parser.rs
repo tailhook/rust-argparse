@@ -14,7 +14,7 @@ pub fn check_ok(ap: &ArgumentParser, args: &[&str]) {
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Ok(()) => return,
-        Err(x) => fail!(
+        Err(x) => panic!(
             from_utf8(stderr.unwrap().as_slice()).unwrap().to_string() +
             format!("Expected ok, but found Exit({})", x)),
     }
@@ -31,8 +31,8 @@ pub fn check_exit(ap: &ArgumentParser, args: &[&str]) {
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(0) => return,
-        Err(x) => fail!(format!("Expected code {} got {}", 0u, x)),
-        Ok(()) => fail!(format!("Expected failure, got success")),
+        Err(x) => panic!(format!("Expected code {} got {}", 0u, x)),
+        Ok(()) => panic!(format!("Expected failure, got success")),
     }
 }
 
@@ -47,8 +47,8 @@ pub fn check_err(ap: &ArgumentParser, args: &[&str]) {
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(2) => return,
-        Err(x) => fail!(format!("Expected code {} got {}", 2u, x)),
-        Ok(()) => fail!(format!("Expected failure, got success")),
+        Err(x) => panic!(format!("Expected code {} got {}", 2u, x)),
+        Ok(()) => panic!(format!("Expected failure, got success")),
     }
 }
 

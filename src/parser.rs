@@ -195,7 +195,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
                 return Parsed;
             }
-            _ => fail!(),
+            _ => panic!(),
         };
     }
 
@@ -366,7 +366,7 @@ impl<'a, 'b> Context<'a, 'b> {
                         _ => return res,
                     }
                 }
-                _ => fail!(),
+                _ => panic!(),
             }
         }
         for (opt, lst) in self.list_arguments.iter() {
@@ -378,7 +378,7 @@ impl<'a, 'b> Context<'a, 'b> {
                         _ => return res,
                     }
                 }
-                _ => fail!(),
+                _ => panic!(),
             }
         }
         return Parsed;
@@ -529,10 +529,10 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
             action: act,
             });
         match opt.action {
-            Flag(_) => fail!("Flag arguments can't be positional"),
+            Flag(_) => panic!("Flag arguments can't be positional"),
             Many(_) | Push(_) => {
                 match self.parser.catchall_argument {
-                    Some(ref y) => fail!(format!(
+                    Some(ref y) => panic!(format!(
                         "Option {} conflicts with option {}",
                         name, y.name)),
                     None => {},
@@ -654,13 +654,13 @@ impl<'parser> ArgumentParser<'parser> {
             });
 
         if names.len() < 1 {
-            fail!("At least one name for option must be specified");
+            panic!("At least one name for option must be specified");
         }
         for nameptr in names.iter() {
             let name = *nameptr;
             match ArgumentKind::check(name) {
                 Positional|Delimiter => {
-                    fail!("Bad argument name {}", name);
+                    panic!("Bad argument name {}", name);
                 }
                 LongOption => {
                     self.long_options.insert(
@@ -668,7 +668,7 @@ impl<'parser> ArgumentParser<'parser> {
                 }
                 ShortOption => {
                     if name.len() > 2 {
-                        fail!("Bad short argument {}", name);
+                        panic!("Bad short argument {}", name);
                     }
                     self.short_options.insert(
                         name.as_bytes()[1] as char, opt.clone());
