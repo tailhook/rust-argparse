@@ -9,13 +9,13 @@ use super::{StoreTrue, StoreFalse};
 
 
 impl TypedAction<bool> for StoreTrue {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
         return Flag(box StoreConstAction { cell: cell, value: true });
     }
 }
 
 impl TypedAction<bool> for StoreFalse {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
+    fn bind<'x>(&'x self, cell: Rc<RefCell<&'x mut bool>>) -> Action {
         return Flag(box StoreConstAction { cell: cell, value: false });
     }
 }
