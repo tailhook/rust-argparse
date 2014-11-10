@@ -204,7 +204,7 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut equals_iter = arg.splitn(1, '=');
         let optname = equals_iter.next().unwrap();
         let valueref = equals_iter.next();
-        let opt = self.parser.long_options.find(&optname.to_string());
+        let opt = self.parser.long_options.get(&optname.to_string());
         match opt {
             Some(opt) => {
                 match opt.action {
@@ -241,7 +241,7 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut iter = arg.char_indices();
         iter.next();
         for (idx, ch) in iter {
-            let opt = match self.parser.short_options.find(&ch) {
+            let opt = match self.parser.short_options.get(&ch) {
                 Some(opt) => { opt }
                 None => {
                     return Error(format!("Unknown short option \"{}\"", ch));
@@ -482,17 +482,17 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-pub struct Ref<'refer, 'parser: 'refer, T: 'refer> {
-    cell: Rc<RefCell<&'refer mut T>>,
+pub struct Ref<'parser, T: 'parser> {
+    cell: Rc<RefCell<&'parser mut T>>,
     varid: uint,
-    parser: &'refer mut ArgumentParser<'parser>,
+    parser: &'parser mut ArgumentParser<'parser>,
 }
 
-impl<'a, 'b, T> Ref<'a, 'b, T> {
+impl<'parser, T> Ref<'parser, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: &[&'b str],
-        action: Box<TypedAction<T>>, help: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+    pub fn add_option<'x>(&'x mut self, names: &[&'parser str],
+        action: Box<TypedAction<T>>, help: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -517,9 +517,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         return self;
     }
 
-    pub fn add_argument<'x>(&'x mut self, name: &'b str,
-        action: Box<TypedAction<T>>, help: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+    pub fn add_argument<'x>(&'x mut self, name: &'parser str,
+        action: Box<TypedAction<T>>, help: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericArgument {
@@ -554,7 +554,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn metavar<'x>(&'x mut self, name: &str)
-        -> &'x mut Ref<'a, 'b, T>
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -564,7 +564,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn required<'x>(&'x mut self)
-        -> &'x mut Ref<'a, 'b, T>
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -574,9 +574,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 }
 
-impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
-    pub fn envvar<'x>(&'x mut self, varname: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+impl<'parser, T: 'static + FromStr> Ref<'parser, T> {
+    pub fn envvar<'x>(&'x mut self, varname: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         self.parser.env_vars.push(Rc::new(EnvVar {
             varid: self.varid,
@@ -621,8 +621,8 @@ impl<'parser> ArgumentParser<'parser> {
         return ap;
     }
 
-    pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
-        -> Box<Ref<'x, 'parser, T>>
+    pub fn refer<T>(&'parser mut self, val: &'parser mut T)
+        -> Box<Ref<'parser, T>>
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
