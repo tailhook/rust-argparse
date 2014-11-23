@@ -1,7 +1,8 @@
 use std::str::CharOffsets;
 use std::io::IoResult;
 
-use super::action::{IFlagAction, Help, ParseResult};
+use super::action::{IFlagAction, ParseResult};
+use super::action::ParseResult::Help;
 
 pub struct HelpAction;
 

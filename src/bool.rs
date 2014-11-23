@@ -3,7 +3,7 @@ use std::rc::Rc;
 
 use super::action::Action;
 use super::action::TypedAction;
-use super::action::Flag;
+use super::action::Action::Flag;
 use super::generic::StoreConstAction;
 use super::{StoreTrue, StoreFalse};
 

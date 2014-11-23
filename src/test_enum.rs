@@ -4,6 +4,8 @@ use parser::ArgumentParser;
 use super::Store;
 use test_parser::{check_ok,check_err};
 
+use self::Greeting::{Hello, Hi, NoGreeting};
+
 enum Greeting {
     Hello,
     Hi,

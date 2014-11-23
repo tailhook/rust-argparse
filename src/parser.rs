@@ -14,13 +14,15 @@ use std::collections::HashMap;
 use std::collections::hash_map::{Vacant, Occupied};
 use std::collections::HashSet;
 
-use super::action::Action;
-use super::action::{ParseResult, Parsed, Help, Exit, Error};
+use super::action::{Action, ParseResult};
+use super::action::ParseResult::{Parsed, Help, Exit, Error};
 use super::action::TypedAction;
-use super::action::{Flag, Single, Push, Many};
+use super::action::Action::{Flag, Single, Push, Many};
 use super::action::IArgAction;
 use super::generic::StoreAction;
 use super::help::{HelpAction, wrap_text};
+
+use self::ArgumentKind::{Positional, ShortOption, LongOption, Delimiter};
 
 
 static OPTION_WIDTH: uint = 24;
@@ -33,6 +35,7 @@ enum ArgumentKind {
     LongOption,
     Delimiter, // Barely "--"
 }
+
 
 impl ArgumentKind {
     fn check(name: &str) -> ArgumentKind {
