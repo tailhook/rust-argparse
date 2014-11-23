@@ -1,5 +1,5 @@
 use std::cell::RefCell;
-use std::from_str::FromStr;
+use std::str::FromStr;
 use std::rc::Rc;
 
 use super::{StoreConst, Store, StoreOption, List, Collect};

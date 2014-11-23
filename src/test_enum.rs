@@ -1,4 +1,4 @@
-use std::from_str::FromStr;
+use std::str::FromStr;
 
 use parser::ArgumentParser;
 use super::Store;

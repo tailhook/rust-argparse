@@ -8,7 +8,7 @@ use std::slice::Items;
 use std::hash::Hash;
 use std::hash::sip::SipState;
 use std::ascii::AsciiExt;
-use std::from_str::FromStr;
+use std::str::FromStr;
 
 use std::collections::HashMap;
 use std::collections::hash_map::{Vacant, Occupied};
