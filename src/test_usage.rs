@@ -18,7 +18,7 @@ fn test_options() {
     let mut ap = ArgumentParser::new();
     let mut val = 0;
     ap.refer(&mut val)
-      .add_option(["--value"], box Store::<int>,
+      .add_option(&["--value"], box Store::<int>,
         "Set integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
