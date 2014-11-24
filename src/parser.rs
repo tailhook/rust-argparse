@@ -184,11 +184,11 @@ impl<'a, 'b> Context<'a, 'b> {
                 loop {
                     match self.iter.peek() {
                         None => { break; }
-                        Some(arg) if arg.as_slice().starts_with("-") => {
+                        Some(arg) if arg.starts_with("-") => {
                             break;
                         }
                         Some(value) => {
-                            let argborrow: &'a str = value.as_slice();
+                            let argborrow: &'a str = (*value).as_slice();
                             vec.push(argborrow);
                         }
                     }
@@ -616,7 +616,7 @@ impl<'parser> ArgumentParser<'parser> {
             long_options: HashMap::new(),
             stop_on_first_argument: false,
             };
-        ap.add_option_for(None, ["-h", "--help"], Flag(box HelpAction),
+        ap.add_option_for(None, &["-h", "--help"], Flag(box HelpAction),
             "show this help message and exit");
         return ap;
     }
