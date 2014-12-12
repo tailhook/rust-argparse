@@ -82,7 +82,7 @@ Create ArgumentParser
 ---------------------
 
 The argument parser is created empty and is built incrementally. So we create
-and immutable variable::
+a mutable variable::
 
     extern crate argparse;
     use argparse::ArgumentParser;
