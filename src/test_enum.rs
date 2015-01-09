@@ -1,8 +1,10 @@
-use std::from_str::FromStr;
+use std::str::FromStr;
 
 use parser::ArgumentParser;
 use super::Store;
 use test_parser::{check_ok,check_err};
+
+use self::Greeting::{Hello, Hi, NoGreeting};
 
 enum Greeting {
     Hello,
@@ -25,13 +27,13 @@ fn test_parse_enum() {
     let mut val = NoGreeting;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(["-g"], box Store::<Greeting>,
+      .add_option(&["-g"], box Store::<Greeting>,
         "Greeting");
-    check_ok(&ap, ["./argparse_test"]);
+    check_ok(&ap, &["./argparse_test"]);
     assert!(match val { NoGreeting => true, _ => false });
-    check_ok(&ap, ["./argparse_test", "-ghello"]);
+    check_ok(&ap, &["./argparse_test", "-ghello"]);
     assert!(match val { Hello => true, _ => false });
-    check_ok(&ap, ["./argparse_test", "-ghi"]);
+    check_ok(&ap, &["./argparse_test", "-ghi"]);
     assert!(match val { Hi => true, _ => false });
-    check_err(&ap, ["./argparse_test", "-ghell"]);
+    check_err(&ap, &["./argparse_test", "-ghell"]);
 }

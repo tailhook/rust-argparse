@@ -7,19 +7,22 @@ use std::iter::Peekable;
 use std::slice::Items;
 use std::hash::Hash;
 use std::hash::sip::SipState;
-use std::ascii::StrAsciiExt;
-use std::from_str::FromStr;
+use std::ascii::AsciiExt;
+use std::str::FromStr;
 
-use std::collections::hashmap::{HashMap, Vacant, Occupied};
-use std::collections::hashmap::HashSet;
+use std::collections::HashMap;
+use std::collections::hash_map::{Vacant, Occupied};
+use std::collections::HashSet;
 
-use super::action::Action;
-use super::action::{ParseResult, Parsed, Help, Exit, Error};
+use super::action::{Action, ParseResult};
+use super::action::ParseResult::{Parsed, Help, Exit, Error};
 use super::action::TypedAction;
-use super::action::{Flag, Single, Push, Many};
+use super::action::Action::{Flag, Single, Push, Many};
 use super::action::IArgAction;
 use super::generic::StoreAction;
 use super::help::{HelpAction, wrap_text};
+
+use self::ArgumentKind::{Positional, ShortOption, LongOption, Delimiter};
 
 
 static OPTION_WIDTH: uint = 24;
@@ -32,6 +35,7 @@ enum ArgumentKind {
     LongOption,
     Delimiter, // Barely "--"
 }
+
 
 impl ArgumentKind {
     fn check(name: &str) -> ArgumentKind {
@@ -183,11 +187,11 @@ impl<'a, 'b> Context<'a, 'b> {
                 loop {
                     match self.iter.peek() {
                         None => { break; }
-                        Some(arg) if arg.as_slice().starts_with("-") => {
+                        Some(arg) if arg.starts_with("-") => {
                             break;
                         }
                         Some(value) => {
-                            let argborrow: &'a str = value.as_slice();
+                            let argborrow: &'a str = (*value).as_slice();
                             vec.push(argborrow);
                         }
                     }
@@ -195,7 +199,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
                 return Parsed;
             }
-            _ => fail!(),
+            _ => panic!(),
         };
     }
 
@@ -203,7 +207,7 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut equals_iter = arg.splitn(1, '=');
         let optname = equals_iter.next().unwrap();
         let valueref = equals_iter.next();
-        let opt = self.parser.long_options.find(&optname.to_string());
+        let opt = self.parser.long_options.get(&optname.to_string());
         match opt {
             Some(opt) => {
                 match opt.action {
@@ -240,7 +244,7 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut iter = arg.char_indices();
         iter.next();
         for (idx, ch) in iter {
-            let opt = match self.parser.short_options.find(&ch) {
+            let opt = match self.parser.short_options.get(&ch) {
                 Some(opt) => { opt }
                 None => {
                     return Error(format!("Unknown short option \"{}\"", ch));
@@ -366,7 +370,7 @@ impl<'a, 'b> Context<'a, 'b> {
                         _ => return res,
                     }
                 }
-                _ => fail!(),
+                _ => panic!(),
             }
         }
         for (opt, lst) in self.list_arguments.iter() {
@@ -378,7 +382,7 @@ impl<'a, 'b> Context<'a, 'b> {
                         _ => return res,
                     }
                 }
-                _ => fail!(),
+                _ => panic!(),
             }
         }
         return Parsed;
@@ -481,17 +485,17 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-pub struct Ref<'refer, 'parser: 'refer, T: 'refer> {
-    cell: Rc<RefCell<&'refer mut T>>,
+pub struct Ref<'parser, T: 'parser> {
+    cell: Rc<RefCell<&'parser mut T>>,
     varid: uint,
-    parser: &'refer mut ArgumentParser<'parser>,
+    parser: &'parser mut ArgumentParser<'parser>,
 }
 
-impl<'a, 'b, T> Ref<'a, 'b, T> {
+impl<'parser, T> Ref<'parser, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: &[&'b str],
-        action: Box<TypedAction<T>>, help: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+    pub fn add_option<'x>(&'x mut self, names: &[&'parser str],
+        action: Box<TypedAction<T>>, help: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -516,9 +520,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
         return self;
     }
 
-    pub fn add_argument<'x>(&'x mut self, name: &'b str,
-        action: Box<TypedAction<T>>, help: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+    pub fn add_argument<'x>(&'x mut self, name: &'parser str,
+        action: Box<TypedAction<T>>, help: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericArgument {
@@ -529,10 +533,10 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
             action: act,
             });
         match opt.action {
-            Flag(_) => fail!("Flag arguments can't be positional"),
+            Flag(_) => panic!("Flag arguments can't be positional"),
             Many(_) | Push(_) => {
                 match self.parser.catchall_argument {
-                    Some(ref y) => fail!(format!(
+                    Some(ref y) => panic!(format!(
                         "Option {} conflicts with option {}",
                         name, y.name)),
                     None => {},
@@ -553,7 +557,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn metavar<'x>(&'x mut self, name: &str)
-        -> &'x mut Ref<'a, 'b, T>
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -563,7 +567,7 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 
     pub fn required<'x>(&'x mut self)
-        -> &'x mut Ref<'a, 'b, T>
+        -> &'x mut Ref<'parser, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -573,9 +577,9 @@ impl<'a, 'b, T> Ref<'a, 'b, T> {
     }
 }
 
-impl<'a, 'b, T: 'static + FromStr> Ref<'a, 'b, T> {
-    pub fn envvar<'x>(&'x mut self, varname: &'b str)
-        -> &'x mut Ref<'a, 'b, T>
+impl<'parser, T: 'static + FromStr> Ref<'parser, T> {
+    pub fn envvar<'x>(&'x mut self, varname: &'parser str)
+        -> &'x mut Ref<'parser, T>
     {
         self.parser.env_vars.push(Rc::new(EnvVar {
             varid: self.varid,
@@ -615,13 +619,13 @@ impl<'parser> ArgumentParser<'parser> {
             long_options: HashMap::new(),
             stop_on_first_argument: false,
             };
-        ap.add_option_for(None, ["-h", "--help"], Flag(box HelpAction),
+        ap.add_option_for(None, &["-h", "--help"], Flag(box HelpAction),
             "show this help message and exit");
         return ap;
     }
 
-    pub fn refer<'x, T>(&'x mut self, val: &'x mut T)
-        -> Box<Ref<'x, 'parser, T>>
+    pub fn refer<T>(&'parser mut self, val: &'parser mut T)
+        -> Box<Ref<'parser, T>>
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
@@ -643,7 +647,7 @@ impl<'parser> ArgumentParser<'parser> {
 
     fn add_option_for(&mut self, var: Option<uint>,
         names: &[&'parser str],
-        action: Action, help: &'parser str)
+        action: Action<'parser>, help: &'parser str)
     {
         let opt = Rc::new(GenericOption {
             id: self.options.len(),
@@ -654,13 +658,13 @@ impl<'parser> ArgumentParser<'parser> {
             });
 
         if names.len() < 1 {
-            fail!("At least one name for option must be specified");
+            panic!("At least one name for option must be specified");
         }
         for nameptr in names.iter() {
             let name = *nameptr;
             match ArgumentKind::check(name) {
                 Positional|Delimiter => {
-                    fail!("Bad argument name {}", name);
+                    panic!("Bad argument name {}", name);
                 }
                 LongOption => {
                     self.long_options.insert(
@@ -668,7 +672,7 @@ impl<'parser> ArgumentParser<'parser> {
                 }
                 ShortOption => {
                     if name.len() > 2 {
-                        fail!("Bad short argument {}", name);
+                        panic!("Bad short argument {}", name);
                     }
                     self.short_options.insert(
                         name.as_bytes()[1] as char, opt.clone());

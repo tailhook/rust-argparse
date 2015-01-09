@@ -2,10 +2,10 @@ use std::cell::RefCell;
 use std::rc::Rc;
 
 use super::{IncrBy, DecrBy};
-use super::action::{TypedAction, Action};
-use super::action::{ParseResult, Parsed};
+use super::action::{TypedAction, Action, ParseResult};
+use super::action::ParseResult::Parsed;
 use super::action::IFlagAction;
-use super::action::Flag;
+use super::action::Action::Flag;
 
 pub struct IncrByAction<'a, T: 'a> {
     delta: T,
@@ -18,14 +18,14 @@ pub struct DecrByAction<'a, T: 'a> {
 }
 
 impl<T: 'static + Add<T, T> + Copy> TypedAction<T> for IncrBy<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         let IncrBy(delta) = *self;
         return Flag(box IncrByAction { cell: cell, delta: delta });
     }
 }
 
 impl<T: 'static + Sub<T, T> + Copy> TypedAction<T> for DecrBy<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         let DecrBy(delta) = *self;
         return Flag(box DecrByAction { cell: cell, delta: delta });
     }

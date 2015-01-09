@@ -1,12 +1,13 @@
 use std::cell::RefCell;
-use std::from_str::FromStr;
+use std::str::FromStr;
 use std::rc::Rc;
 
 use super::{StoreConst, Store, StoreOption, List, Collect};
 use super::action::Action;
 use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
-use super::action::{ParseResult, Parsed, Error};
-use super::action::{Flag, Single, Push, Many};
+use super::action::ParseResult;
+use super::action::ParseResult::{Parsed, Error};
+use super::action::Action::{Flag, Single, Push, Many};
 
 pub struct StoreConstAction<'a, T: 'a> {
     pub value: T,
@@ -26,32 +27,32 @@ pub struct ListAction<'a, T: 'a> {
 }
 
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         let StoreConst(val) = *self;
         return Flag(box StoreConstAction { cell: cell, value: val });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         return Single(box StoreAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action<'x> {
         return Single(box StoreOptionAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
         return Many(box ListAction { cell: cell });
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect<T> {
-    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
         return Push(box ListAction { cell: cell });
     }
 }
