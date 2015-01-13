@@ -1,17 +1,18 @@
 use std::os;
-use std::io::IoResult;
+use std::io::{Writer,IoResult};
 use std::io::stdio::{stdout, stderr};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::iter::Peekable;
-use std::slice::Items;
+use std::slice::Iter;
 use std::hash::Hash;
-use std::hash::sip::SipState;
+use std::hash::Hasher;
 use std::ascii::AsciiExt;
 use std::str::FromStr;
+use std::hash::Writer as HashWriter;
 
 use std::collections::HashMap;
-use std::collections::hash_map::{Vacant, Occupied};
+use std::collections::hash_map::Entry;
 use std::collections::HashSet;
 
 use super::action::{Action, ParseResult};
@@ -25,8 +26,8 @@ use super::help::{HelpAction, wrap_text};
 use self::ArgumentKind::{Positional, ShortOption, LongOption, Delimiter};
 
 
-static OPTION_WIDTH: uint = 24;
-static TOTAL_WIDTH: uint = 79;
+static OPTION_WIDTH: usize = 24;
+static TOTAL_WIDTH: usize = 79;
 
 
 enum ArgumentKind {
@@ -58,29 +59,29 @@ impl ArgumentKind {
 }
 
 struct GenericArgument<'parser> {
-    id: uint,
-    varid: uint,
+    id: usize,
+    varid: usize,
     name: &'parser str,
     help: &'parser str,
     action: Action<'parser>,
 }
 
 struct GenericOption<'parser> {
-    id: uint,
-    varid: Option<uint>,
+    id: usize,
+    varid: Option<usize>,
     names: Vec<&'parser str>,
     help: &'parser str,
     action: Action<'parser>,
 }
 
 struct EnvVar<'parser> {
-    varid: uint,
+    varid: usize,
     name: &'parser str,
     action: Box<IArgAction + 'parser>,
 }
 
-impl<'a> Hash for GenericOption<'a> {
-    fn hash(&self, state: &mut SipState) {
+impl<'a, H: Hasher+HashWriter> Hash<H> for GenericOption<'a> {
+    fn hash(&self, state: &mut H) {
         self.id.hash(state);
     }
 }
@@ -93,8 +94,8 @@ impl<'a> PartialEq for GenericOption<'a> {
 
 impl<'a> Eq for GenericOption<'a> {}
 
-impl<'a> Hash for GenericArgument<'a> {
-    fn hash(&self, state: &mut SipState) {
+impl<'a, H: Hasher+HashWriter> Hash<H> for GenericArgument<'a> {
+    fn hash(&self, state: &mut H) {
         self.id.hash(state);
     }
 }
@@ -108,13 +109,13 @@ impl<'a> PartialEq for GenericArgument<'a> {
 impl<'a> Eq for GenericArgument<'a> {}
 
 pub struct Var<'parser> {
-    id: uint,
+    id: usize,
     metavar: String,
     required: bool,
 }
 
-impl<'parser> Hash for Var<'parser> {
-    fn hash(&self, state: &mut SipState) {
+impl<'parser, H:Hasher+HashWriter> Hash<H> for Var<'parser> {
+    fn hash(&self, state: &mut H) {
         self.id.hash(state);
     }
 }
@@ -129,12 +130,12 @@ impl<'a> Eq for Var<'a> {}
 
 struct Context<'ctx, 'parser: 'ctx> {
     parser: &'ctx ArgumentParser<'parser>,
-    set_vars: HashSet<uint>,
+    set_vars: HashSet<usize>,
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
-    iter: Peekable<&'ctx String, Items<'ctx, String>>,
-    stderr: &'ctx mut Writer + 'ctx,
+    iter: Peekable<&'ctx String, Iter<'ctx, String>>,
+    stderr: &'ctx mut (Writer + 'ctx),
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -154,7 +155,8 @@ impl<'a, 'b> Context<'a, 'b> {
                     return match opt.action {
                         Many(_) => Parsed,
                         _ => Error(format!(
-                            "Option {} requires an argument", opt.names)),
+                            // TODO(tailhook) is {:?} ok?
+                            "Option {:?} requires an argument", opt.names)),
                     };
                 }
             },
@@ -169,15 +171,15 @@ impl<'a, 'b> Context<'a, 'b> {
             }
             Push(_) => {
                 (match self.list_options.entry(opt.clone()) {
-                    Occupied(occ) => occ.into_mut(),
-                    Vacant(vac) => vac.set(Vec::new()),
+                    Entry::Occupied(occ) => occ.into_mut(),
+                    Entry::Vacant(vac) => vac.insert(Vec::new()),
                 }).push(value);
                 return Parsed;
             }
             Many(_) => {
                 let vec = match self.list_options.entry(opt.clone()) {
-                    Occupied(occ) => occ.into_mut(),
-                    Vacant(vac) => vac.set(Vec::new()),
+                    Entry::Occupied(occ) => occ.into_mut(),
+                    Entry::Vacant(vac) => vac.insert(Vec::new()),
                 };
                 vec.push(value);
                 match optarg {
@@ -345,8 +347,8 @@ impl<'a, 'b> Context<'a, 'b> {
                 },
                 Many(_) | Push(_) => {
                     (match self.list_arguments.entry(opt.clone()) {
-                        Occupied(occ) => occ.into_mut(),
-                        Vacant(vac) => vac.set(Vec::new()),
+                        Entry::Occupied(occ) => occ.into_mut(),
+                        Entry::Vacant(vac) => vac.insert(Vec::new()),
                     }).push(*arg);
                     Parsed
                 },
@@ -429,7 +431,8 @@ impl<'a, 'b> Context<'a, 'b> {
                         _ => { continue }
                     }
                     return Error(format!(
-                        "Option {} is required", opt.names));
+                        // TODO(tailhook) is {:?} appropriate?
+                        "Option {:?} is required", opt.names));
                 }
                 // Then envvars
                 for envvar in self.parser.env_vars.iter() {
@@ -487,7 +490,7 @@ impl<'a, 'b> Context<'a, 'b> {
 
 pub struct Ref<'parser, T: 'parser> {
     cell: Rc<RefCell<&'parser mut T>>,
-    varid: uint,
+    varid: usize,
     parser: &'parser mut ArgumentParser<'parser>,
 }
 
@@ -510,7 +513,7 @@ impl<'parser, T> Ref<'parser, T> {
                 }
                 if llen > 2 {
                     var.metavar = longest_name.slice(2, llen)
-                        .to_ascii_upper().replace("-", "_");
+                        .to_ascii_uppercase().replace("-", "_");
                 }
             }
         }
@@ -645,7 +648,7 @@ impl<'parser> ArgumentParser<'parser> {
         self.description = descr;
     }
 
-    fn add_option_for(&mut self, var: Option<uint>,
+    fn add_option_for(&mut self, var: Option<usize>,
         names: &[&'parser str],
         action: Action<'parser>, help: &'parser str)
     {
@@ -693,7 +696,7 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn parse(&self, args: Vec<String>,
         stdout: &mut Writer, stderr: &mut Writer)
-        -> Result<(), int>
+        -> Result<(), isize>
     {
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
@@ -720,7 +723,7 @@ impl<'parser> ArgumentParser<'parser> {
         self.stop_on_first_argument = want_stop;
     }
 
-    pub fn parse_args(&self) -> Result<(), int> {
+    pub fn parse_args(&self) -> Result<(), isize> {
         return self.parse(os::args(), &mut stdout(), &mut stderr());
     }
 }
@@ -728,7 +731,7 @@ impl<'parser> ArgumentParser<'parser> {
 struct HelpFormatter<'a, 'b: 'a> {
     name: &'a str,
     parser: &'a ArgumentParser<'b>,
-    buf: &'a mut Writer + 'a,
+    buf: &'a mut (Writer + 'a),
 }
 
 impl<'a, 'b> HelpFormatter<'a, 'b> {
@@ -851,7 +854,8 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 if !var.required {
                     try!(self.buf.write_char('['));
                 }
-                try!(self.buf.write_str(opt.name.to_ascii_upper().as_slice()));
+                try!(self.buf.write_str(
+                    opt.name.to_ascii_uppercase().as_slice()));
                 if !var.required {
                     try!(self.buf.write_char(']'));
                 }
@@ -864,7 +868,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                         try!(self.buf.write_char('['));
                     }
                     try!(self.buf.write_str(
-                        opt.name.to_ascii_upper().as_slice()));
+                        opt.name.to_ascii_uppercase().as_slice()));
                     if !var.required {
                         try!(self.buf.write_str(" ...]"));
                     } else {

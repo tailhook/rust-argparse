@@ -1,20 +1,23 @@
 containers:
 
   build:
-    builder: ubuntu
-    parameters:
-      PPAs: hansjorg/rust
-      additional_keys: 37FD5E80BD6B6386  # for rust
-      packages: make rust-nightly gcc
+    setup:
+    - !Ubuntu trusty
+    - !Install [make, gcc]
+    - !TarInstall
+      url: http://static.rust-lang.org/dist/rust-1.0.0-alpha-x86_64-unknown-linux-gnu.tar.gz
+      script: ./install.sh --prefix=/usr
+    volumes:
+      /tmp: !Tmpfs { size: 100Mi }
 
 commands:
 
-  make:
+  make: !Command
     container: build
-    command: make
+    run: make
 
-  test:
+  test: !Command
     container: build
-    command: [make, test]
+    run: [make, test]
 
 

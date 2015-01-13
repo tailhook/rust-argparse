@@ -1,5 +1,6 @@
 #![crate_name = "argparse"]
 #![crate_type = "lib"]
+#![feature(box_syntax)]
 
 extern crate collections;
 extern crate arena;

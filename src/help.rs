@@ -1,4 +1,4 @@
-use std::str::CharOffsets;
+use std::str::CharIndices;
 use std::io::IoResult;
 
 use super::action::{IFlagAction, ParseResult};
@@ -15,7 +15,7 @@ impl IFlagAction for HelpAction {
 
 struct WordsIter<'a> {
     data: &'a str,
-    iter: CharOffsets<'a>,
+    iter: CharIndices<'a>,
 }
 
 impl<'a> WordsIter<'a> {
@@ -27,7 +27,8 @@ impl<'a> WordsIter<'a> {
     }
 }
 
-impl<'a> Iterator<&'a str> for WordsIter<'a> {
+impl<'a> Iterator for WordsIter<'a> {
+    type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
         let mut word_start;
         loop {
@@ -55,7 +56,7 @@ impl<'a> Iterator<&'a str> for WordsIter<'a> {
     }
 }
 
-pub fn wrap_text(buf: &mut Writer, data: &str, width: uint, indent: uint)
+pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
     -> IoResult<()>
 {
     let mut witer = WordsIter::new(data);
