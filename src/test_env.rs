@@ -8,14 +8,14 @@ use test_parser::{check_ok, check_err};
 #[test]
 fn test_required() {
     let mut ap = ArgumentParser::new();
-    let mut val1 = 1i;
-    let mut val2 = 2i;
+    let mut val1 = 1is;
+    let mut val2 = 2is;
     ap.refer(&mut val1)
-        .add_option(&["--v1"], box Store::<int>, "The value 1")
-        .add_argument("v1", box Store::<int>, "The value 1")
+        .add_option(&["--v1"], box Store::<isize>, "The value 1")
+        .add_argument("v1", box Store::<isize>, "The value 1")
         .envvar("TEST_ENV_REQUIRED_V1")
         .required();
-    ap.refer(&mut val2).add_argument("v2", box Store::<int>, "The value 2");
+    ap.refer(&mut val2).add_argument("v2", box Store::<isize>, "The value 2");
     os::setenv("TEST_ENV_REQUIRED_V1", "some_crap");
     check_err(&ap, &["./argparse_test"]);
     check_ok(&ap, &["./argparse_test", "10"]);
