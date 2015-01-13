@@ -3,7 +3,6 @@
 #![feature(box_syntax)]
 
 extern crate collections;
-extern crate arena;
 
 pub use self::parser::{ArgumentParser, Ref};
 
