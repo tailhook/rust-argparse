@@ -14,10 +14,24 @@ commands:
 
   make: !Command
     container: build
-    run: make
+    run: [make]
 
   test: !Command
     container: build
-    run: [make, test]
+    run: make test
+
+  example-greeting: !Command
+    description: Build and run "greeting" example
+    container: build
+    run: |
+      make greeting
+      ./greeting
+
+  example-structure: !Command
+    description: Build and run "structure" example
+    container: build
+    run: |
+      make structure
+      ./structure
 
 
