@@ -488,17 +488,17 @@ impl<'a, 'b> Context<'a, 'b> {
     }
 }
 
-pub struct Ref<'parser, T: 'parser> {
+pub struct Ref<'parser:'refer, 'refer, T: 'parser> {
     cell: Rc<RefCell<&'parser mut T>>,
     varid: usize,
-    parser: &'parser mut ArgumentParser<'parser>,
+    parser: &'refer mut ArgumentParser<'parser>,
 }
 
-impl<'parser, T> Ref<'parser, T> {
+impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
 
     pub fn add_option<'x>(&'x mut self, names: &[&'parser str],
         action: Box<TypedAction<T>>, help: &'parser str)
-        -> &'x mut Ref<'parser, T>
+        -> &'x mut Ref<'parser, 'refer, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -525,7 +525,7 @@ impl<'parser, T> Ref<'parser, T> {
 
     pub fn add_argument<'x>(&'x mut self, name: &'parser str,
         action: Box<TypedAction<T>>, help: &'parser str)
-        -> &'x mut Ref<'parser, T>
+        -> &'x mut Ref<'parser, 'refer, T>
     {
         let act = action.bind(self.cell.clone());
         let opt = Rc::new(GenericArgument {
@@ -560,7 +560,7 @@ impl<'parser, T> Ref<'parser, T> {
     }
 
     pub fn metavar<'x>(&'x mut self, name: &str)
-        -> &'x mut Ref<'parser, T>
+        -> &'x mut Ref<'parser, 'refer, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -570,7 +570,7 @@ impl<'parser, T> Ref<'parser, T> {
     }
 
     pub fn required<'x>(&'x mut self)
-        -> &'x mut Ref<'parser, T>
+        -> &'x mut Ref<'parser, 'refer, T>
     {
         {
             let var = &mut self.parser.vars.as_mut_slice()[self.varid];
@@ -580,9 +580,9 @@ impl<'parser, T> Ref<'parser, T> {
     }
 }
 
-impl<'parser, T: 'static + FromStr> Ref<'parser, T> {
+impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
     pub fn envvar<'x>(&'x mut self, varname: &'parser str)
-        -> &'x mut Ref<'parser, T>
+        -> &'x mut Ref<'parser, 'refer, T>
     {
         self.parser.env_vars.push(Rc::new(EnvVar {
             varid: self.varid,
@@ -593,15 +593,15 @@ impl<'parser, T: 'static + FromStr> Ref<'parser, T> {
     }
 }
 
-pub struct ArgumentParser<'a> {
-    description: &'a str,
-    vars: Vec<Box<Var<'a>>>,
-    options: Vec<Rc<GenericOption<'a>>>,
-    arguments: Vec<Rc<GenericArgument<'a>>>,
-    env_vars: Vec<Rc<EnvVar<'a>>>,
-    catchall_argument: Option<Rc<GenericArgument<'a>>>,
-    short_options: HashMap<char, Rc<GenericOption<'a>>>,
-    long_options: HashMap<String, Rc<GenericOption<'a>>>,
+pub struct ArgumentParser<'parser> {
+    description: &'parser str,
+    vars: Vec<Box<Var<'parser>>>,
+    options: Vec<Rc<GenericOption<'parser>>>,
+    arguments: Vec<Rc<GenericArgument<'parser>>>,
+    env_vars: Vec<Rc<EnvVar<'parser>>>,
+    catchall_argument: Option<Rc<GenericArgument<'parser>>>,
+    short_options: HashMap<char, Rc<GenericOption<'parser>>>,
+    long_options: HashMap<String, Rc<GenericOption<'parser>>>,
     stop_on_first_argument: bool,
 }
 
@@ -627,8 +627,8 @@ impl<'parser> ArgumentParser<'parser> {
         return ap;
     }
 
-    pub fn refer<T>(&'parser mut self, val: &'parser mut T)
-        -> Box<Ref<'parser, T>>
+    pub fn refer<'x, T>(&'x mut self, val: &'parser mut T)
+        -> Box<Ref<'parser, 'x, T>>
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
