@@ -11,7 +11,7 @@ libargparse.rlib: src/lib.rs src/*.rs
 
 examples: greeting structure
 
-%: examples/%.rs $(LIBNAME)
+%: examples/%.rs libargparse.rlib
 	rustc -o $@ $< -L .
 
 .PHONY: argparse-lib test examples
