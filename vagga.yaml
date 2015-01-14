@@ -23,15 +23,17 @@ commands:
   example-greeting: !Command
     description: Build and run "greeting" example
     container: build
+    accepts-arguments: true
     run: |
       make greeting
-      ./greeting
+      ./greeting "$@"
 
   example-structure: !Command
     description: Build and run "structure" example
     container: build
+    accepts-arguments: true
     run: |
       make structure
-      ./structure
+      ./structure "$@"
 
 
