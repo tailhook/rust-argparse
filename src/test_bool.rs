@@ -3,77 +3,96 @@ use super::Store;
 use super::{StoreTrue, StoreFalse};
 use test_parser::{check_ok,check_err};
 
-#[test]
-fn test_store_true() {
+fn store_true(args: &[&str]) -> bool {
     let mut verbose = false;
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut verbose)
-      .add_option(&["-t", "--true"], box StoreTrue,
-        "Store true action");
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test"]);
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test", "--true"]);
-    assert!(verbose);
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut verbose)
+          .add_option(&["-t", "--true"], box StoreTrue,
+            "Store true action");
+        check_ok(&ap,  args);
+    }
+    return verbose;
 }
 
 #[test]
-fn test_store_false() {
+fn test_store_true() {
+    assert!(!store_true(&["./argparse_test"]));
+    assert!(store_true(&["./argparse_test", "--true"]));
+}
+
+fn store_false(args: &[&str]) -> bool {
     let mut verbose = true;
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut verbose)
-      .add_option(&["-f", "--false"], box StoreFalse,
-        "Store false action");
-    assert!(verbose);
-    check_ok(&ap, &["./argparse_test"]);
-    assert!(verbose);
-    check_ok(&ap, &["./argparse_test", "--false"]);
-    assert!(!verbose);
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut verbose)
+          .add_option(&["-f", "--false"], box StoreFalse,
+            "Store false action");
+        check_ok(&ap,  args);
+    }
+    return verbose;
+}
+#[test]
+fn test_store_false() {
+    assert!(store_false(&["./argparse_test"]));
+    assert!(!store_false(&["./argparse_test", "--false"]));
+}
+
+fn store_bool(args: &[&str]) -> bool {
+    let mut verbose = false;
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut verbose)
+          .add_option(&["-f", "--false"], box StoreFalse,
+            "Store false action")
+          .add_option(&["-t", "--true"], box StoreTrue,
+            "Store false action");
+        check_ok(&ap,  args);
+    }
+    return verbose;
 }
 
 #[test]
 fn test_bool() {
-    let mut verbose = false;
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut verbose)
-      .add_option(&["-f", "--false"], box StoreFalse,
-        "Store false action")
-      .add_option(&["-t", "--true"], box StoreTrue,
-        "Store false action");
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test"]);
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test", "-t"]);
-    assert!(verbose);
-    check_ok(&ap, &["./argparse_test", "-f"]);
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test", "-fft"]);
-    assert!(verbose);
-    check_ok(&ap, &["./argparse_test", "-fffft", "-f"]);
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test", "--false", "-fffft", "-f",
-                   "--true"]);
-    assert!(verbose);
+    assert!(!store_bool(&["./argparse_test"]));
+    assert!(store_bool(&["./argparse_test", "-t"]));
+    assert!(!store_bool(&["./argparse_test", "-f"]));
+    assert!(store_bool(&["./argparse_test", "-fft"]));
+    assert!(!store_bool(&["./argparse_test", "-fffft", "-f"]));
+    assert!(store_bool(&["./argparse_test", "--false", "-fffft", "-f",
+                   "--true"]));
 }
+
+fn set_bool(args: &[&str]) -> bool {
+    let mut verbose = false;
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut verbose)
+          .add_option(&["-s", "--set"], box Store::<bool>,
+            "Set boolean value");
+        check_ok(&ap,  args);
+    }
+    return verbose;
+}
+
 
 #[test]
 fn test_set_bool() {
-    let mut verbose = false;
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut verbose)
-      .add_option(&["-s", "--set"], box Store::<bool>,
-        "Set boolean value");
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test"]);
-    assert!(!verbose);
-    check_ok(&ap, &["./argparse_test", "-strue"]);
-    assert!(verbose);
-    check_ok(&ap, &["./argparse_test", "-sfalse"]);
-    assert!(!verbose);
+    assert!(!set_bool(&["./argparse_test"]));
+    assert!(set_bool(&["./argparse_test", "-strue"]));
+    assert!(!set_bool(&["./argparse_test", "-sfalse"]));
 
     // Unfortunately other values do not work
-    check_err(&ap, &["./argparse_test", "-syes"]);
-    assert!(!verbose);
-    check_err(&ap, &["./argparse_test", "-sno"]);
-    assert!(!verbose);
+}
+
+#[test]
+#[should_fail(message="Bad value yes")]
+fn test_bad_bools1() {
+    assert!(!set_bool(&["./argparse_test", "-syes"]));
+}
+
+#[test]
+#[should_fail(message="Bad value no")]
+fn test_bad_bools2() {
+    assert!(!set_bool(&["./argparse_test", "-sno"]));
 }
