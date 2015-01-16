@@ -2,16 +2,27 @@ use parser::ArgumentParser;
 use super::Store;
 use test_parser::{check_ok,check_err};
 
+fn parse_str(args: &[&str]) -> String {
+    let mut val: String = "".to_string();
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut val)
+          .add_option(&["-s", "--set"], box Store::<String>,
+            "Set string value");
+        check_ok(&ap, args);
+    }
+    return val;
+}
+
 #[test]
 fn test_str() {
-    let mut val: String = "".to_string();
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut val)
-      .add_option(&["-s", "--set"], box Store::<String>,
-        "Set string value");
-    check_ok(&ap, &["./argparse_test", "-s", "10"]);
-    assert!(val == "10".to_string());
-    check_ok(&ap, &["./argparse_test", "--set", "value"]);
-    assert!(val == "value".to_string());
-    check_err(&ap, &["./argparse_test", "--set"]);
+    assert_eq!(parse_str(&["./argparse_test", "-s", "10"]), "10".to_string());
+    assert_eq!(parse_str(&["./argparse_test", "--set", "value"]),
+               "value".to_string());
+}
+
+#[test]
+#[should_fail]
+fn test_err() {
+    parse_str(&["./argparse_test", "--set"]);
 }
