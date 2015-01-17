@@ -6,6 +6,8 @@ use test_parser::{check_ok,check_err};
 
 use self::Greeting::{Hello, Hi, NoGreeting};
 
+
+#[derive(PartialEq, Eq, Show)]
 enum Greeting {
     Hello,
     Hi,
@@ -22,18 +24,27 @@ impl FromStr for Greeting {
     }
 }
 
+fn parse_enum(args: &[&str]) -> Greeting {
+    let mut val = NoGreeting;
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut val)
+          .add_option(&["-g"], box Store::<Greeting>,
+            "Greeting");
+        check_ok(&ap, args);
+    }
+    return val;
+}
+
 #[test]
 fn test_parse_enum() {
-    let mut val = NoGreeting;
-    let mut ap = ArgumentParser::new();
-    ap.refer(&mut val)
-      .add_option(&["-g"], box Store::<Greeting>,
-        "Greeting");
-    check_ok(&ap, &["./argparse_test"]);
-    assert!(match val { NoGreeting => true, _ => false });
-    check_ok(&ap, &["./argparse_test", "-ghello"]);
-    assert!(match val { Hello => true, _ => false });
-    check_ok(&ap, &["./argparse_test", "-ghi"]);
-    assert!(match val { Hi => true, _ => false });
-    check_err(&ap, &["./argparse_test", "-ghell"]);
+    assert_eq!(parse_enum(&["./argparse_test"]), NoGreeting);
+    assert_eq!(parse_enum(&["./argparse_test", "-ghello"]), Hello);
+    assert_eq!(parse_enum(&["./argparse_test", "-ghi"]), Hi);
+}
+
+#[test]
+#[should_fail]
+fn test_parse_error() {
+    parse_enum(&["./argparse_test", "-ghell"]);
 }
