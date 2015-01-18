@@ -28,20 +28,21 @@ The following code is a simple Rust program with command-line arguments:
     fn main() {
         let mut verbose = false;
         let mut name = "World".to_string();
-
-        let mut ap = ArgumentParser::new();
-        ap.set_description("Greet somebody.");
-        ap.refer(&mut verbose)
-            .add_option(["-v", "--verbose"], box StoreTrue,
-            "Be verbose");
-        ap.refer(&mut name)
-            .add_option(["--name"], box Store::<String>,
-            "Name for the greeting");
-        match ap.parse_args() {
-            Ok(()) => {}
-            Err(x) => {
-                os::set_exit_status(x);
-                return;
+        {  // this block limits scope of borrows by ap.refer() method
+            let mut ap = ArgumentParser::new();
+            ap.set_description("Greet somebody.");
+            ap.refer(&mut verbose)
+                .add_option(["-v", "--verbose"], box StoreTrue,
+                "Be verbose");
+            ap.refer(&mut name)
+                .add_option(["--name"], box Store::<String>,
+                "Name for the greeting");
+            match ap.parse_args() {
+                Ok(()) => {}
+                Err(x) => {
+                    os::set_exit_status(x);
+                    return;
+                }
             }
         }
 
@@ -252,8 +253,8 @@ The following actions are available out of the box. They may be used in either
 ``Collect``
     When used for an ``--option``, requires single argument. When used for a
     positional argument consumes all remaining arguments. Parsed options are
-    added to the list. I.e. a ``box List::<int>`` action requires a ``Vec<int>``
-    variable. Parses arguments using ``FromStr`` trait.
+    added to the list. I.e. a ``box Collect::<int>`` action requires a
+    ``Vec<int>`` variable. Parses arguments using ``FromStr`` trait.
 
 ``List``
     When used for positional argument, works the same as ``List``. When used
