@@ -43,7 +43,7 @@ pub type StoreBool = Store<bool>;
 #[cfg(test)] mod test_enum;
 #[cfg(test)] mod test_pos;
 #[cfg(test)] mod test_many;
-//#[cfg(test)] mod test_optional;
+#[cfg(test)] mod test_optional;
 //#[cfg(test)] mod test_usage;
 //#[cfg(test)] mod test_help;
 //#[cfg(test)] mod test_env;
