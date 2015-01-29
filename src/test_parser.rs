@@ -1,4 +1,4 @@
-use std::io::MemWriter;
+use std::old_io::MemWriter;
 use std::str::from_utf8;
 
 use parser::ArgumentParser;
@@ -67,4 +67,3 @@ fn test_help() {
     check_ok(&ap, &["./argparse_test"]);
     check_exit(&ap, &["./argparse_test", "--help"]);
 }
-
