@@ -1,5 +1,5 @@
 use std::str::CharIndices;
-use std::io::IoResult;
+use std::old_io::IoResult;
 
 use super::action::{IFlagAction, ParseResult};
 use super::action::ParseResult::Help;
@@ -86,5 +86,3 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
     }
     return Ok(());
 }
-
-

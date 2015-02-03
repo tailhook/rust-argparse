@@ -1,6 +1,6 @@
 use std::os;
-use std::io::{Writer,IoResult};
-use std::io::stdio::{stdout, stderr};
+use std::old_io::{Writer,IoResult};
+use std::old_io::stdio::{stdout, stderr};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::iter::Peekable;
