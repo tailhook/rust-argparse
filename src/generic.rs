@@ -68,11 +68,11 @@ impl<'a, T: Copy> IFlagAction for StoreConstAction<'a, T> {
 impl<'a, T: FromStr> IArgAction for StoreAction<'a, T> {
     fn parse_arg(&self, arg: &str) -> ParseResult {
         match FromStr::from_str(arg) {
-            Some(x) => {
+            Ok(x) => {
                 **self.cell.borrow_mut() = x;
                 return Parsed;
             }
-            None => {
+            Err(_) => {
                 return Error(format!("Bad value {}", arg));
             }
         }
@@ -82,11 +82,11 @@ impl<'a, T: FromStr> IArgAction for StoreAction<'a, T> {
 impl<'a, T: FromStr> IArgAction for StoreOptionAction<'a, T> {
     fn parse_arg(&self, arg: &str) -> ParseResult {
         match FromStr::from_str(arg) {
-            Some(x) => {
+            Ok(x) => {
                 **self.cell.borrow_mut() = Some(x);
                 return Parsed;
             }
-            None => {
+            Err(_) => {
                 return Error(format!("Bad value {}", arg));
             }
         }
@@ -98,10 +98,10 @@ impl<'a, T: FromStr + Clone> IArgsAction for ListAction<'a, T> {
         let mut result = box Vec::new();
         for arg in args.iter() {
             match FromStr::from_str(*arg) {
-                Some(x) => {
+                Ok(x) => {
                     result.push(x);
                 }
-                None => {
+                Err(_) => {
                     return Error(format!("Bad value {}", arg));
                 }
             }

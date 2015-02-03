@@ -22,9 +22,9 @@ fn test_empty() {
 
 #[test]
 fn test_options() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
     let mut val2 = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program. The description of the program is ought
         to be very long, because we want to test how word wrapping works for
         it. So some more text would be ok for the test");
@@ -53,8 +53,8 @@ for the test\n"
 
 #[test]
 fn test_argument() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut val)
       .add_argument("value", box Store::<isize>,
@@ -76,9 +76,9 @@ fn test_argument() {
 
 #[test]
 fn test_arguments() {
-    let mut ap = ArgumentParser::new();
     let mut v1 = 0;
     let mut v2 = Vec::new();
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
       .add_argument("v1", box Store::<isize>,
@@ -104,9 +104,9 @@ fn test_arguments() {
 
 #[test]
 fn test_req_arguments() {
-    let mut ap = ArgumentParser::new();
     let mut v1 = 0;
     let mut v2 = Vec::new();
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
       .add_argument("v1", box Store::<isize>,
@@ -134,8 +134,8 @@ fn test_req_arguments() {
 
 #[test]
 fn test_metavar() {
-    let mut ap = ArgumentParser::new();
     let mut val2 = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program.");
     ap.refer(&mut val2)
       .add_option(&["-L", "--long-option"], box Store::<isize>,

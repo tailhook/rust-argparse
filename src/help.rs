@@ -44,7 +44,11 @@ impl<'a> Iterator for WordsIter<'a> {
                 }
             }
         }
-       for (idx, ch) in self.iter {
+        loop {
+            let (idx, ch) = match self.iter.next() {
+                None => break,
+                Some((idx, ch)) => ((idx, ch)),
+            };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => {
                     return Some(self.data.slice(word_start, idx));

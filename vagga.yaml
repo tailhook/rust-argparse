@@ -5,7 +5,7 @@ containers:
     - !Ubuntu trusty
     - !Install [make, gcc]
     - !TarInstall
-      url: http://static.rust-lang.org/dist/rust-1.0.0-alpha-x86_64-unknown-linux-gnu.tar.gz
+      url: http://static.rust-lang.org/dist/rust-nightly-x86_64-unknown-linux-gnu.tar.gz
       script: ./install.sh --prefix=/usr
     volumes:
       /tmp: !Tmpfs { size: 100Mi }

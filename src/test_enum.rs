@@ -7,7 +7,7 @@ use test_parser::{check_ok,check_err};
 use self::Greeting::{Hello, Hi, NoGreeting};
 
 
-#[derive(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 enum Greeting {
     Hello,
     Hi,
@@ -15,11 +15,12 @@ enum Greeting {
 }
 
 impl FromStr for Greeting {
-    fn from_str(src: &str) -> Option<Greeting> {
+    type Err = ();
+    fn from_str(src: &str) -> Result<Greeting, ()> {
         return match src {
-            "hello" => Some(Hello),
-            "hi" => Some(Hi),
-            _ => None,
+            "hello" => Ok(Hello),
+            "hi" => Ok(Hi),
+            _ => Err(()),
         };
     }
 }

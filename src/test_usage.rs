@@ -15,21 +15,23 @@ fn test_empty() {
 
 #[test]
 fn test_options() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
-    ap.refer(&mut val)
-      .add_option(&["--value"], box Store::<isize>,
-        "Set integer value");
     let mut buf = MemWriter::new();
-    assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut val)
+          .add_option(&["--value"], box Store::<isize>,
+            "Set integer value");
+        assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+    }
     assert_eq!("Usage:\n    ./argparse_test [OPTIONS]\n",
         from_utf8(buf.into_inner().as_slice()).unwrap());
 }
 
 #[test]
 fn test_argument() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
+    let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
       .add_argument("value", box Store::<isize>,
         "Integer value");
@@ -41,9 +43,9 @@ fn test_argument() {
 
 #[test]
 fn test_arguments() {
-    let mut ap = ArgumentParser::new();
     let mut v1 = 0;
     let mut v2 = Vec::new();
+    let mut ap = ArgumentParser::new();
     ap.refer(&mut v1)
       .add_argument("v1", box Store::<isize>,
         "Integer value 1");
