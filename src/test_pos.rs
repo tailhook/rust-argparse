@@ -172,3 +172,25 @@ fn test_pos_stop() {
 fn test_test() {
     pos_stop(&["./argparse_test"]);
 }
+
+fn pos_dash(args: &[&str], dash: bool) -> Vec<String> {
+    let mut val = Vec::new();
+    {
+        let mut ap = ArgumentParser::new();
+        ap.refer(&mut val)
+            .add_argument("v1", box List::<String>, "The value");
+        ap.silence_double_dash(dash);
+        check_ok(&ap, args);
+    }
+    return val;
+}
+
+#[test]
+fn test_pos_dash() {
+    assert_eq!(pos_dash(&["./argparse_test", "1"], true),
+        vec!("1".to_string()));
+    assert_eq!(pos_dash(&["./argparse_test", "--", "1"], true),
+        vec!("1".to_string()));
+    assert_eq!(pos_dash(&["./argparse_test", "--", "1"], false),
+        vec!("--".to_string(), "1".to_string()));
+}

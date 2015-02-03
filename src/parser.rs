@@ -300,7 +300,12 @@ impl<'a, 'b> Context<'a, 'b> {
                 }
                 LongOption => self.parse_long_option(arg.as_slice()),
                 ShortOption => self.parse_short_options(arg.as_slice()),
-                Delimiter => break,
+                Delimiter => {
+                    if !self.parser.silence_double_dash {
+                        self.postpone_argument("--");
+                    }
+                    break;
+                }
             };
             match res {
                 Parsed => continue,
@@ -603,6 +608,7 @@ pub struct ArgumentParser<'parser> {
     short_options: HashMap<char, Rc<GenericOption<'parser>>>,
     long_options: HashMap<String, Rc<GenericOption<'parser>>>,
     stop_on_first_argument: bool,
+    silence_double_dash: bool,
 }
 
 
@@ -621,6 +627,7 @@ impl<'parser> ArgumentParser<'parser> {
             short_options: HashMap::new(),
             long_options: HashMap::new(),
             stop_on_first_argument: false,
+            silence_double_dash: true,
             };
         ap.add_option_for(None, &["-h", "--help"], Flag(box HelpAction),
             "show this help message and exit");
@@ -721,6 +728,10 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn stop_on_first_argument(&mut self, want_stop: bool) {
         self.stop_on_first_argument = want_stop;
+    }
+
+    pub fn silence_double_dash(&mut self, silence: bool) {
+        self.silence_double_dash = silence;
     }
 
     pub fn parse_args(&self) -> Result<(), isize> {

@@ -177,10 +177,15 @@ ArgumentParser Methods
     Set description that is at the top of help message.
 
 ``parser.stop_on_first_argument(val: bool)``
-    If called with ``true``. Parser will stop searching for options when first
+    If called with ``true``, parser will stop searching for options when first
     non-option (the one doesn't start with ``-``) argument is encountered. This
     is useful if you want to parse following options with another argparser or
     external program.
+
+``parser.silence_double_dash(val: bool)``
+    If called with ``true`` (default), parser will not treat *first* double
+    dash ``--`` as positional argument. Use ``false`` if you need to add some
+    meaning to the ``--`` marker.
 
 ``parser.print_usage(writer: Writer)``
     Prints usage string to stderr.
