@@ -20,6 +20,8 @@ pub struct StoreFalse;
 
 pub struct StoreConst<T>(pub T);
 
+pub struct PushConst<T>(pub T);
+
 pub struct Store<T>;
 
 pub struct StoreOption<T>;
@@ -47,3 +49,4 @@ pub type StoreBool = Store<bool>;
 #[cfg(test)] mod test_usage;
 #[cfg(test)] mod test_help;
 #[cfg(test)] mod test_env;
+#[cfg(test)] mod test_const;

@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::str::FromStr;
 use std::rc::Rc;
 
-use super::{StoreConst, Store, StoreOption, List, Collect};
+use super::{StoreConst, Store, StoreOption, List, Collect, PushConst};
 use super::action::Action;
 use super::action::{TypedAction, IFlagAction, IArgAction, IArgsAction};
 use super::action::ParseResult;
@@ -12,6 +12,11 @@ use super::action::Action::{Flag, Single, Push, Many};
 pub struct StoreConstAction<'a, T: 'a> {
     pub value: T,
     pub cell: Rc<RefCell<&'a mut T>>,
+}
+
+pub struct PushConstAction<'a, T: 'a> {
+    pub value: T,
+    pub cell: Rc<RefCell<&'a mut Vec<T>>>,
 }
 
 pub struct StoreAction<'a, T: 'a> {
@@ -30,6 +35,13 @@ impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         let StoreConst(val) = *self;
         return Flag(box StoreConstAction { cell: cell, value: val });
+    }
+}
+
+impl<T: 'static + Copy> TypedAction<Vec<T>> for PushConst<T> {
+    fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
+        let PushConst(val) = *self;
+        return Flag(box PushConstAction { cell: cell, value: val });
     }
 }
 
@@ -61,6 +73,14 @@ impl<'a, T: Copy> IFlagAction for StoreConstAction<'a, T> {
     fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
         **targ = self.value;
+        return Parsed;
+    }
+}
+
+impl<'a, T: Copy> IFlagAction for PushConstAction<'a, T> {
+    fn parse_flag(&self) -> ParseResult {
+        let mut targ = self.cell.borrow_mut();
+        targ.push(self.value);
         return Parsed;
     }
 }

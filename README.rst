@@ -238,6 +238,12 @@ The following actions are available out of the box. They may be used in either
     An option has no arguments. Store a hard-coded ``value`` into variable,
     when specified. Any type may be used.
 
+``PushConst(value)``
+    An option has no arguments. Push a hard-coded ``value`` into variable,
+    when specified. Any type may be used. Option might used for a list of
+    operations to perform, when ``require`` is set for this option, at least
+    one operation is required.
+
 ``StoreTrue``
     Stores boolean ``true`` value in a variable.
     (shortcut for ``StoreConst(true)``)
