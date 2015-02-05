@@ -430,14 +430,20 @@ impl<'a, 'b> Context<'a, 'b> {
                     }
                 }
                 // Then options
+                let mut all_options = vec!();
                 for opt in self.parser.options.iter() {
                     match opt.varid {
                         Some(varid) if varid == var.id => {}
                         _ => { continue }
                     }
+                    all_options.extend(opt.names.clone().into_iter());
+                }
+                if all_options.len() > 1 {
                     return Error(format!(
-                        // TODO(tailhook) is {:?} appropriate?
-                        "Option {:?} is required", opt.names));
+                        "One of the options {:?} is required", all_options));
+                } else if all_options.len() == 1 {
+                    return Error(format!(
+                        "Option {:?} is required", all_options));
                 }
                 // Then envvars
                 for envvar in self.parser.env_vars.iter() {
