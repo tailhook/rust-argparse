@@ -711,15 +711,16 @@ impl<'parser> ArgumentParser<'parser> {
         stdout: &mut Writer, stderr: &mut Writer)
         -> Result<(), isize>
     {
+        let name = if args.len() > 0 { args[0].as_slice() } else { "unknown" };
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(args[0].as_slice(), stdout).unwrap();
+                self.print_help(name, stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(args[0].as_slice(), message.as_slice(), stderr);
+                self.error(name.as_slice(), message.as_slice(), stderr);
                 return Err(2);
             }
         }
