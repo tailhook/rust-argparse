@@ -32,10 +32,10 @@ The following code is a simple Rust program with command-line arguments:
             let mut ap = ArgumentParser::new();
             ap.set_description("Greet somebody.");
             ap.refer(&mut verbose)
-                .add_option(["-v", "--verbose"], box StoreTrue,
+                .add_option(["-v", "--verbose"], Box::new(StoreTrue),
                 "Be verbose");
             ap.refer(&mut name)
-                .add_option(["--name"], box Store::<String>,
+                .add_option(["--name"], Box::new(Store::<String>),
                 "Name for the greeting");
             match ap.parse_args() {
                 Ok(()) => {}
@@ -114,22 +114,22 @@ Next we add an options which control the variable:
 For example::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], box StoreTrue,
+        .add_option(["-v", "--verbose"], Box::new(StoreTrue),
                     "Be verbose");
 
 You made add multiple options for the same variable::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], box StoreTrue,
+        .add_option(["-v", "--verbose"], Box::new(StoreTrue),
                     "Be verbose")
-        .add_option(["-q", "--quiet"], box StoreFalse,
+        .add_option(["-q", "--quiet"], Box::new(StoreFalse),
                     "Be verbose");
 
 Similarly positional arguments are added::
 
     let mut command = String;
     parser.refer(&mut command)
-        .add_argument("command", box Store::<String>,
+        .add_argument("command", Box::new(Store::<String>),
                       "Command to run");
 
 
@@ -146,7 +146,7 @@ easily borrow variables from the structure into option parser. For example::
     ...
     let mut options = Options { verbose: false }
     parser.refer(&mut options.verbose)
-        .add_option(["-v"], box StoreTrue,
+        .add_option(["-v"], Box::new(StoreTrue),
                     "Be verbose");
 
 
@@ -203,13 +203,13 @@ Variable Reference Methods
 The ``argparse::Ref`` object is returned from ``parser.refer()``.
 The following methods are used to add and customize arguments:
 
-``option.add_option(names: &[&str], action: box TypedAction, help: &str)``
+``option.add_option(names: &[&str], action: Box<TypedAction>, help: &str)``
     Add an option. All items in names should be either in format ``-X`` or
     ``--long-option`` (i.e. one dash and one char or two dashes and long name).
     How this option will be interpreted and whether it will have an argument
     dependes on the action. See below list of actions.
 
-``option.add_argument(name: &str, action: box TypedAction, help: &str)``
+``option.add_argument(name: &str, action: Box<TypedAction>, help: &str)``
     Add a positional argument
 
 ``option.metavar(var: &str)``
@@ -230,7 +230,7 @@ The following actions are available out of the box. They may be used in either
 ``Store``
     An option has single argument. Stores a value from command-line in a
     variable. Any type that has ``FromStr`` trait implemented may be used. This
-    action must be specified with ``box Store::<TYPE>`` syntax, because of
+    action must be specified with ``Box::new(Store::<TYPE>)`` syntax, because of
     limitation of rust type deriving algorithm. (Known types to work are all
     integer and floating types, str and path).
 
@@ -264,7 +264,7 @@ The following actions are available out of the box. They may be used in either
 ``Collect``
     When used for an ``--option``, requires single argument. When used for a
     positional argument consumes all remaining arguments. Parsed options are
-    added to the list. I.e. a ``box Collect::<int>`` action requires a
+    added to the list. I.e. a ``Box::new(Collect::<int>)`` action requires a
     ``Vec<int>`` variable. Parses arguments using ``FromStr`` trait.
 
 ``List``
@@ -278,8 +278,8 @@ The following actions are available out of the box. They may be used in either
 
     Let's learn rules by example. For the next options::
 
-        ap.refer(&mut lst1).add_option(["-X", "--xx"], box List::<int>, "List1");
-        ap.refer(&mut lst2).add_argument("yy", box List::<int>, "List2");
+        ap.refer(&mut lst1).add_option(["-X", "--xx"], Box::new(List::<int>), "List1");
+        ap.refer(&mut lst2).add_argument("yy", Box::new(List::<int>), "List2");
 
     The following command line::
 
