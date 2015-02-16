@@ -134,7 +134,7 @@ struct Context<'ctx, 'parser: 'ctx> {
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
-    iter: Peekable<&'ctx String, Iter<'ctx, String>>,
+    iter: Peekable<Iter<'ctx, String>>,
     stderr: &'ctx mut (Writer + 'ctx),
 }
 
