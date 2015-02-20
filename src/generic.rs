@@ -95,7 +95,7 @@ impl<'a, T: FromStr> IArgAction for StoreOptionAction<'a, T> {
 
 impl<'a, T: FromStr + Clone> IArgsAction for ListAction<'a, T> {
     fn parse_args(&self, args: &[&str]) -> ParseResult {
-        let mut result = box Vec::new();
+        let mut result = vec!();
         for arg in args.iter() {
             match FromStr::from_str(*arg) {
                 Ok(x) => {
@@ -106,7 +106,7 @@ impl<'a, T: FromStr + Clone> IArgsAction for ListAction<'a, T> {
                 }
             }
         }
-        **self.cell.borrow_mut() = result.as_slice().to_vec();
+        **self.cell.borrow_mut() = result;
         return Parsed;
     }
 }

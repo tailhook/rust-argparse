@@ -51,12 +51,12 @@ impl<'a> Iterator for WordsIter<'a> {
             };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => {
-                    return Some(self.data.slice(word_start, idx));
+                    return Some(&self.data[word_start..idx]);
                 }
                 _ => continue,
             }
         }
-        return Some(self.data.slice(word_start, self.data.len()));
+        return Some(&self.data[word_start..self.data.len()]);
     }
 }
 
@@ -77,7 +77,7 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
     for word in witer {
         if off + word.len() + 1 > width {
             try!(buf.write_char('\n'));
-            for _ in range(0, indent) {
+            for _ in 0..indent {
                 try!(buf.write_char(' '));
             }
             off = indent;
