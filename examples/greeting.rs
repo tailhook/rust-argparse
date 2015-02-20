@@ -1,8 +1,8 @@
-#![feature(box_syntax)]
+#![feature(box_syntax, env)]
 
 extern crate argparse;
 
-use std::os;
+use std::env::set_exit_status;
 
 use argparse::{ArgumentParser, StoreTrue, Store};
 
@@ -21,7 +21,7 @@ fn main() {
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                os::set_exit_status(x);
+                set_exit_status(x);
                 return;
             }
         }

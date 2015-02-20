@@ -695,7 +695,7 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn parse(&self, args: Vec<String>,
         stdout: &mut Writer, stderr: &mut Writer)
-        -> Result<(), isize>
+        -> Result<(), i32>
     {
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
@@ -722,7 +722,7 @@ impl<'parser> ArgumentParser<'parser> {
         self.stop_on_first_argument = want_stop;
     }
 
-    pub fn parse_args(&self) -> Result<(), isize> {
+    pub fn parse_args(&self) -> Result<(), i32> {
         return self.parse(os::args(), &mut stdout(), &mut stderr());
     }
 }
