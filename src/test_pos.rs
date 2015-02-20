@@ -7,7 +7,7 @@ fn parse_pos(args: &[&str]) -> isize {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-            .add_argument("value", box Store, "The value");
+            .add_argument("value", Store, "The value");
         check_ok(&ap, args);
     }
     return val;
@@ -43,9 +43,9 @@ fn parse_two(args: &[&str]) -> (isize, isize) {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)
-            .add_argument("v1", box Store, "The value 1");
+            .add_argument("v1", Store, "The value 1");
         ap.refer(&mut val2)
-            .add_argument("v2", box Store, "The value 2");
+            .add_argument("v2", Store, "The value 2");
         check_ok(&ap, args);
     }
     return (val1, val2);
@@ -81,10 +81,10 @@ fn parse_pos_opt(args: &[&str]) -> (isize, isize) {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)
-            .add_option(&["--v1"], box Store, "The value 1")
-            .add_argument("v1", box Store, "The value 1");
+            .add_option(&["--v1"], Store, "The value 1")
+            .add_argument("v1", Store, "The value 1");
         ap.refer(&mut val2)
-            .add_argument("v2", box Store, "The value 2");
+            .add_argument("v2", Store, "The value 2");
         check_ok(&ap, args);
     }
     return (val1, val2);
@@ -110,11 +110,11 @@ fn parse_pos_req(args: &[&str]) -> (isize, isize) {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)
-            .add_option(&["--v1"], box Store, "The value 1")
-            .add_argument("v1", box Store, "The value 1")
+            .add_option(&["--v1"], Store, "The value 1")
+            .add_argument("v1", Store, "The value 1")
             .required();
         ap.refer(&mut val2)
-            .add_argument("v2", box Store, "The value 2");
+            .add_argument("v2", Store, "The value 2");
         check_ok(&ap, args);
     }
     return (val1, val2);
@@ -146,11 +146,11 @@ fn pos_stop(args: &[&str]) -> (isize, Vec<String>) {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)
-            .add_option(&["--v1"], box Store, "The value 1")
-            .add_argument("v1", box Store, "The value 1")
+            .add_option(&["--v1"], Store, "The value 1")
+            .add_argument("v1", Store, "The value 1")
             .required();
         ap.refer(&mut val2)
-            .add_argument("v2", box List, "The value 2");
+            .add_argument("v2", List, "The value 2");
         ap.stop_on_first_argument(true);
         check_ok(&ap, args);
     }

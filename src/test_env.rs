@@ -11,12 +11,12 @@ fn required(args: &[&str]) -> (isize, isize) {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)
-            .add_option(&["--v1"], box Store, "The value 1")
-            .add_argument("v1", box Store, "The value 1")
+            .add_option(&["--v1"], Store, "The value 1")
+            .add_argument("v1", Store, "The value 1")
             .envvar("TEST_ENV_REQUIRED_V1")
             .required();
         ap.refer(&mut val2)
-            .add_argument("v2", box Store, "The value 2");
+            .add_argument("v2", Store, "The value 2");
         check_ok(&ap, args);
     }
     return (val1, val2)

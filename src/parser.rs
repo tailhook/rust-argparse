@@ -495,8 +495,8 @@ pub struct Ref<'parser:'refer, 'refer, T: 'parser> {
 
 impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: &[&'parser str],
-        action: Box<TypedAction<T>>, help: &'parser str)
+    pub fn add_option<'x, A: TypedAction<T>>(&'x mut self,
+        names: &[&'parser str], action: A, help: &'parser str)
         -> &'x mut Ref<'parser, 'refer, T>
     {
         {
@@ -522,8 +522,8 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         return self;
     }
 
-    pub fn add_argument<'x>(&'x mut self, name: &'parser str,
-        action: Box<TypedAction<T>>, help: &'parser str)
+    pub fn add_argument<'x, A: TypedAction<T>>(&'x mut self,
+        name: &'parser str, action: A, help: &'parser str)
         -> &'x mut Ref<'parser, 'refer, T>
     {
         let act = action.bind(self.cell.clone());

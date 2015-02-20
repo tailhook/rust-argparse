@@ -1,4 +1,4 @@
-#![feature(box_syntax, env)]
+#![feature(env)]
 
 extern crate argparse;
 
@@ -23,10 +23,10 @@ fn main() {
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
         ap.refer(&mut options.verbose)
-            .add_option(&["-v", "--verbose"], box StoreTrue,
+            .add_option(&["-v", "--verbose"], StoreTrue,
             "Be verbose");
         ap.refer(&mut options.name)
-            .add_option(&["--name"], box Store,
+            .add_option(&["--name"], Store,
             "Name for the greeting");
         match ap.parse_args() {
             Ok(()) => {}

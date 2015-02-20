@@ -7,8 +7,8 @@ fn pos_list(args: &[&str]) -> (isize, Vec<isize>) {
     let mut val2 = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut val1).add_argument("v1", box Store, "The value 1");
-        ap.refer(&mut val2).add_argument("v2", box List, "The list of vals");
+        ap.refer(&mut val1).add_argument("v1", Store, "The value 1");
+        ap.refer(&mut val2).add_argument("v2", List, "The list of vals");
         check_ok(&ap, args);
     }
     return (val1, val2);
@@ -27,7 +27,7 @@ fn pos_collect(args: &[&str]) -> Vec<isize> {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut lst)
-            .add_argument("v", box Collect, "The list of vals");
+            .add_argument("v", Collect, "The list of vals");
         check_ok(&ap, args);
     }
     return lst;
@@ -51,7 +51,7 @@ fn collect(args: &[&str]) -> Vec<isize> {
     let mut lst = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut lst).add_option(&["-a", "--add"], box Collect,
+        ap.refer(&mut lst).add_option(&["-a", "--add"], Collect,
             "The list of vals");
         check_ok(&ap, args);
     }
@@ -77,7 +77,7 @@ fn list(args: &[&str]) -> Vec<isize> {
     let mut vec = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut vec).add_option(&["-a", "--add"], box List,
+        ap.refer(&mut vec).add_option(&["-a", "--add"], List,
             "The list of vals");
         check_ok(&ap, args);
     }
