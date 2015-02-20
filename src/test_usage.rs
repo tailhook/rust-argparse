@@ -20,7 +20,7 @@ fn test_options() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["--value"], box Store::<isize>,
+          .add_option(&["--value"], box Store,
             "Set integer value");
         assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
     }
@@ -33,7 +33,7 @@ fn test_argument() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_argument("value", box Store::<isize>,
+      .add_argument("value", box Store,
         "Integer value");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
@@ -44,13 +44,13 @@ fn test_argument() {
 #[test]
 fn test_arguments() {
     let mut v1 = 0;
-    let mut v2 = Vec::new();
+    let mut v2 = Vec::<u32>::new();
     let mut ap = ArgumentParser::new();
     ap.refer(&mut v1)
-      .add_argument("v1", box Store::<isize>,
+      .add_argument("v1", box Store,
         "Integer value 1");
     ap.refer(&mut v2)
-      .add_argument("v2", box List::<isize>,
+      .add_argument("v2", box List,
         "More values");
     let mut buf = MemWriter::new();
     assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));

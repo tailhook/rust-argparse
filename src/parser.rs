@@ -9,7 +9,6 @@ use std::hash::Hash;
 use std::hash::Hasher;
 use std::ascii::AsciiExt;
 use std::str::FromStr;
-use std::hash::Writer as HashWriter;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -80,8 +79,8 @@ struct EnvVar<'parser> {
     action: Box<IArgAction + 'parser>,
 }
 
-impl<'a, H: Hasher+HashWriter> Hash<H> for GenericOption<'a> {
-    fn hash(&self, state: &mut H) {
+impl<'a> Hash for GenericOption<'a> {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
@@ -94,8 +93,8 @@ impl<'a> PartialEq for GenericOption<'a> {
 
 impl<'a> Eq for GenericOption<'a> {}
 
-impl<'a, H: Hasher+HashWriter> Hash<H> for GenericArgument<'a> {
-    fn hash(&self, state: &mut H) {
+impl<'a> Hash for GenericArgument<'a> {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
@@ -108,25 +107,25 @@ impl<'a> PartialEq for GenericArgument<'a> {
 
 impl<'a> Eq for GenericArgument<'a> {}
 
-pub struct Var<'parser> {
+pub struct Var {
     id: usize,
     metavar: String,
     required: bool,
 }
 
-impl<'parser, H:Hasher+HashWriter> Hash<H> for Var<'parser> {
-    fn hash(&self, state: &mut H) {
+impl Hash for Var {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
 
-impl<'parser> PartialEq for Var<'parser> {
-    fn eq(&self, other: &Var<'parser>) -> bool {
+impl PartialEq for Var {
+    fn eq(&self, other: &Var) -> bool {
         return self.id == other.id;
     }
 }
 
-impl<'a> Eq for Var<'a> {}
+impl Eq for Var {}
 
 struct Context<'ctx, 'parser: 'ctx> {
     parser: &'ctx ArgumentParser<'parser>,
@@ -595,7 +594,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
 
 pub struct ArgumentParser<'parser> {
     description: &'parser str,
-    vars: Vec<Box<Var<'parser>>>,
+    vars: Vec<Box<Var>>,
     options: Vec<Rc<GenericOption<'parser>>>,
     arguments: Vec<Rc<GenericArgument<'parser>>>,
     env_vars: Vec<Rc<EnvVar<'parser>>>,

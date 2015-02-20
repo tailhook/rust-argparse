@@ -33,25 +33,25 @@ impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
     }
 }
 
-impl<T: 'static + FromStr> TypedAction<T> for Store<T> {
+impl<T: 'static + FromStr> TypedAction<T> for Store {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         return Single(box StoreAction { cell: cell });
     }
 }
 
-impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption<T> {
+impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action<'x> {
         return Single(box StoreOptionAction { cell: cell });
     }
 }
 
-impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List<T> {
+impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
         return Many(box ListAction { cell: cell });
     }
 }
 
-impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect<T> {
+impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
         return Push(box ListAction { cell: cell });
     }

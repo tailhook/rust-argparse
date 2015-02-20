@@ -1,6 +1,6 @@
 #![crate_name = "argparse"]
 #![crate_type = "lib"]
-#![feature(box_syntax)]
+#![feature(box_syntax, int_uint)]
 
 extern crate collections;
 
@@ -14,25 +14,23 @@ mod help;
 mod bool;
 mod num;
 
+// TODO(tailhook) make consts
 pub struct StoreTrue;
-
 pub struct StoreFalse;
 
 pub struct StoreConst<T>(pub T);
 
-pub struct Store<T>;
+pub struct Store;
 
-pub struct StoreOption<T>;
+pub struct StoreOption;
 
-pub struct List<T>;
+pub struct List;
 
-pub struct Collect<T>;
+pub struct Collect;
 
 pub struct IncrBy<T>(pub T);
 
 pub struct DecrBy<T>(pub T);
-
-pub type StoreBool = Store<bool>;
 
 
 #[cfg(test)] mod test_parser;

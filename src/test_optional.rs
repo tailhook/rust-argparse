@@ -7,7 +7,7 @@ fn opt(args: &[&str]) -> Option<isize> {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box StoreOption::<isize>,
+          .add_option(&["-s", "--set"], box StoreOption,
             "Set int value");
         check_ok(&ap, args);
     }
@@ -32,7 +32,7 @@ fn optstr(args: &[&str]) -> Option<String> {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box StoreOption::<String>,
+          .add_option(&["-s", "--set"], box StoreOption,
             "Set string value");
         check_ok(&ap, args);
     }

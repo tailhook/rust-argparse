@@ -31,7 +31,7 @@ fn test_float() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<f64>,
+          .add_option(&["-s", "--set"], box Store,
             "Set float value");
         check_ok(&ap, &["./argparse_test", "-s", "15.125"]);
     }
@@ -44,7 +44,7 @@ fn test_fail() {
     let mut val = 0.1;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(&["-s", "--set"], box Store::<f64>,
+      .add_option(&["-s", "--set"], box Store,
         "Set float value");
     check_ok(&ap, &["./argparse_test", "-s", "test"]);
 }

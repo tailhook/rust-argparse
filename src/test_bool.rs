@@ -68,7 +68,7 @@ fn set_bool(args: &[&str]) -> bool {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut verbose)
-          .add_option(&["-s", "--set"], box Store::<bool>,
+          .add_option(&["-s", "--set"], box Store,
             "Set boolean value");
         check_ok(&ap,  args);
     }

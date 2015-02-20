@@ -7,7 +7,7 @@ fn parse_str(args: &[&str]) -> String {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<String>,
+          .add_option(&["-s", "--set"], box Store,
             "Set string value");
         check_ok(&ap, args);
     }

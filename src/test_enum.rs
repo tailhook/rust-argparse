@@ -30,7 +30,7 @@ fn parse_enum(args: &[&str]) -> Greeting {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-g"], box Store::<Greeting>,
+          .add_option(&["-g"], box Store,
             "Greeting");
         check_ok(&ap, args);
     }

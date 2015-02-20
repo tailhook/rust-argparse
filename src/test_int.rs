@@ -62,7 +62,7 @@ fn set_int(args: &[&str]) -> isize {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<isize>,
+          .add_option(&["-s", "--set"], box Store,
             "Set integer value");
         check_ok(&ap, args);
     }
@@ -88,7 +88,7 @@ fn set_i16(args: &[&str]) -> i16 {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<i16>,
+          .add_option(&["-s", "--set"], box Store,
             "Set integer value");
         check_ok(&ap, args);
     }
