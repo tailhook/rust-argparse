@@ -32,10 +32,10 @@ The following code is a simple Rust program with command-line arguments:
             let mut ap = ArgumentParser::new();
             ap.set_description("Greet somebody.");
             ap.refer(&mut verbose)
-                .add_option(["-v", "--verbose"], StoreTrue,
+                .add_option(&["-v", "--verbose"], StoreTrue,
                 "Be verbose");
             ap.refer(&mut name)
-                .add_option(["--name"], Store,
+                .add_option(&["--name"], Store,
                 "Name for the greeting");
             match ap.parse_args() {
                 Ok(()) => {}
@@ -114,15 +114,15 @@ Next we add an options which control the variable:
 For example::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], StoreTrue,
+        .add_option(&["-v", "--verbose"], StoreTrue,
                     "Be verbose");
 
 You made add multiple options for the same variable::
 
     parser.refer(&mut verbose)
-        .add_option(["-v", "--verbose"], StoreTrue,
+        .add_option(&["-v", "--verbose"], StoreTrue,
                     "Be verbose")
-        .add_option(["-q", "--quiet"], StoreFalse,
+        .add_option(&["-q", "--quiet"], StoreFalse,
                     "Be verbose");
 
 Similarly positional arguments are added::
@@ -146,7 +146,7 @@ easily borrow variables from the structure into option parser. For example::
     ...
     let mut options = Options { verbose: false }
     parser.refer(&mut options.verbose)
-        .add_option(["-v"], StoreTrue,
+        .add_option(&["-v"], StoreTrue,
                     "Be verbose");
 
 
@@ -267,7 +267,7 @@ The following actions are available out of the box. They may be used in either
 
     Let's learn rules by example. For the next options::
 
-        ap.refer(&mut lst1).add_option(["-X", "--xx"], List, "List1");
+        ap.refer(&mut lst1).add_option(&["-X", "--xx"], List, "List1");
         ap.refer(&mut lst2).add_argument("yy", List, "List2");
 
     The following command line::
