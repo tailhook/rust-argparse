@@ -1,6 +1,6 @@
 use parser::ArgumentParser;
 use super::StoreOption;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn opt(args: &[&str]) -> Option<isize> {
     let mut val = None;

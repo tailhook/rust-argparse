@@ -1,6 +1,6 @@
 use parser::ArgumentParser;
 use super::{Store, List};
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn parse_pos(args: &[&str]) -> isize {
     let mut val = 0;

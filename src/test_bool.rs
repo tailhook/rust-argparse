@@ -1,7 +1,7 @@
 use parser::ArgumentParser;
 use super::Store;
 use super::{StoreTrue, StoreFalse};
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn store_true(args: &[&str]) -> bool {
     let mut verbose = false;

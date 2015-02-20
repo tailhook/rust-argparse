@@ -1,6 +1,6 @@
 use parser::ArgumentParser;
 use super::{List, Store, Collect};
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn pos_list(args: &[&str]) -> (isize, Vec<isize>) {
     let mut val1 = 1;

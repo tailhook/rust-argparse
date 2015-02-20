@@ -1,7 +1,7 @@
 use parser::ArgumentParser;
 use super::{IncrBy,DecrBy};
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn incr_decr(args: &[&str]) -> f32 {
     let mut val = 0f32;

@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use parser::ArgumentParser;
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 use self::Greeting::{Hello, Hi, NoGreeting};
 

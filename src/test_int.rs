@@ -1,7 +1,7 @@
 use parser::ArgumentParser;
 use super::{IncrBy,DecrBy};
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn incr_int(args: &[&str]) -> usize {
     let mut val = 0;
