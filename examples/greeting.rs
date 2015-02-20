@@ -16,7 +16,7 @@ fn main() {
             .add_option(&["-v", "--verbose"], box StoreTrue,
             "Be verbose");
         ap.refer(&mut name)
-            .add_option(&["--name"], box Store::<String>,
+            .add_option(&["--name"], box Store,
             "Name for the greeting");
         match ap.parse_args() {
             Ok(()) => {}
