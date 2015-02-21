@@ -1,9 +1,9 @@
-#![feature(box_syntax)]
+#![feature(env)]
 
 extern crate argparse;
 
 
-use std::os;
+use std::env::set_exit_status;
 
 use argparse::{ArgumentParser, StoreTrue, Store};
 
@@ -23,15 +23,15 @@ fn main() {
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
         ap.refer(&mut options.verbose)
-            .add_option(&["-v", "--verbose"], box StoreTrue,
+            .add_option(&["-v", "--verbose"], StoreTrue,
             "Be verbose");
         ap.refer(&mut options.name)
-            .add_option(&["--name"], box Store::<String>,
+            .add_option(&["--name"], Store,
             "Name for the greeting");
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                os::set_exit_status(x);
+                set_exit_status(x);
                 return;
             }
         }

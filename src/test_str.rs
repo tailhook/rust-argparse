@@ -1,13 +1,13 @@
 use parser::ArgumentParser;
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn parse_str(args: &[&str]) -> String {
     let mut val: String = "".to_string();
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<String>,
+          .add_option(&["-s", "--set"], Store,
             "Set string value");
         check_ok(&ap, args);
     }

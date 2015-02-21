@@ -1,6 +1,6 @@
-use std::os;
-use std::io::{Writer,IoResult};
-use std::io::stdio::{stdout, stderr};
+use std::env;
+use std::old_io::{Writer,IoResult};
+use std::old_io::stdio::{stdout, stderr};
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::iter::Peekable;
@@ -9,7 +9,6 @@ use std::hash::Hash;
 use std::hash::Hasher;
 use std::ascii::AsciiExt;
 use std::str::FromStr;
-use std::hash::Writer as HashWriter;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -80,8 +79,8 @@ struct EnvVar<'parser> {
     action: Box<IArgAction + 'parser>,
 }
 
-impl<'a, H: Hasher+HashWriter> Hash<H> for GenericOption<'a> {
-    fn hash(&self, state: &mut H) {
+impl<'a> Hash for GenericOption<'a> {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
@@ -94,8 +93,8 @@ impl<'a> PartialEq for GenericOption<'a> {
 
 impl<'a> Eq for GenericOption<'a> {}
 
-impl<'a, H: Hasher+HashWriter> Hash<H> for GenericArgument<'a> {
-    fn hash(&self, state: &mut H) {
+impl<'a> Hash for GenericArgument<'a> {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
@@ -108,25 +107,25 @@ impl<'a> PartialEq for GenericArgument<'a> {
 
 impl<'a> Eq for GenericArgument<'a> {}
 
-pub struct Var<'parser> {
+pub struct Var {
     id: usize,
     metavar: String,
     required: bool,
 }
 
-impl<'parser, H:Hasher+HashWriter> Hash<H> for Var<'parser> {
-    fn hash(&self, state: &mut H) {
+impl Hash for Var {
+    fn hash<H>(&self, state: &mut H) where H: Hasher {
         self.id.hash(state);
     }
 }
 
-impl<'parser> PartialEq for Var<'parser> {
-    fn eq(&self, other: &Var<'parser>) -> bool {
+impl PartialEq for Var {
+    fn eq(&self, other: &Var) -> bool {
         return self.id == other.id;
     }
 }
 
-impl<'a> Eq for Var<'a> {}
+impl Eq for Var {}
 
 struct Context<'ctx, 'parser: 'ctx> {
     parser: &'ctx ArgumentParser<'parser>,
@@ -134,7 +133,7 @@ struct Context<'ctx, 'parser: 'ctx> {
     list_options: HashMap<Rc<GenericOption<'parser>>, Vec<&'ctx str>>,
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
-    iter: Peekable<&'ctx String, Iter<'ctx, String>>,
+    iter: Peekable<Iter<'ctx, String>>,
     stderr: &'ctx mut (Writer + 'ctx),
 }
 
@@ -148,8 +147,7 @@ impl<'a, 'b> Context<'a, 'b> {
             Some(value) => value,
             None => match self.iter.next() {
                 Some(value) => {
-                    let argborrow: &'a str = value.as_slice();
-                    argborrow
+                    &value[..]
                 }
                 None => {
                     return match opt.action {
@@ -193,8 +191,7 @@ impl<'a, 'b> Context<'a, 'b> {
                             break;
                         }
                         Some(value) => {
-                            let argborrow: &'a str = (*value).as_slice();
-                            vec.push(argborrow);
+                            vec.push(&value[..]);
                         }
                     }
                     self.iter.next();
@@ -263,7 +260,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 Single(_) | Push(_) | Many(_) => {
                     let value;
                     if idx + 1 < arg.len() {
-                        value = Some(arg.slice(idx+1, arg.len()));
+                        value = Some(&arg[idx+1..arg.len()]);
                     } else {
                         value = None;
                     }
@@ -290,16 +287,16 @@ impl<'a, 'b> Context<'a, 'b> {
                 Some(arg) => { arg }
                 None => { break; }
             };
-            let res = match ArgumentKind::check(arg.as_slice()) {
+            let res = match ArgumentKind::check(&arg[..]) {
                 Positional => {
-                    self.postpone_argument(arg.as_slice());
+                    self.postpone_argument(&arg[..]);
                     if self.parser.stop_on_first_argument {
                         break;
                     }
                     continue;
                 }
-                LongOption => self.parse_long_option(arg.as_slice()),
-                ShortOption => self.parse_short_options(arg.as_slice()),
+                LongOption => self.parse_long_option(&arg[..]),
+                ShortOption => self.parse_short_options(&arg[..]),
                 Delimiter => {
                     if !self.parser.silence_double_dash {
                         self.postpone_argument("--");
@@ -316,7 +313,7 @@ impl<'a, 'b> Context<'a, 'b> {
         loop {
             match self.iter.next() {
                 None => break,
-                Some(arg) => self.postpone_argument(arg.as_slice()),
+                Some(arg) => self.postpone_argument(&arg[..]),
             }
         }
         return Parsed;
@@ -371,7 +368,7 @@ impl<'a, 'b> Context<'a, 'b> {
         for (opt, lst) in self.list_options.iter() {
             match opt.action {
                 Push(ref act) | Many(ref act) => {
-                    let res = act.parse_args(lst.as_slice());
+                    let res = act.parse_args(&lst[..]);
                     match res {
                         Parsed => continue,
                         _ => return res,
@@ -383,7 +380,7 @@ impl<'a, 'b> Context<'a, 'b> {
         for (opt, lst) in self.list_arguments.iter() {
             match opt.action {
                 Push(ref act) | Many(ref act) => {
-                    let res = act.parse_args(lst.as_slice());
+                    let res = act.parse_args(&lst[..]);
                     match res {
                         Parsed => continue,
                         _ => return res,
@@ -397,22 +394,22 @@ impl<'a, 'b> Context<'a, 'b> {
 
     fn parse_env_vars(&mut self) -> ParseResult {
         for evar in self.parser.env_vars.iter() {
-            match os::getenv(evar.name) {
-                Some(val) => {
-                    match evar.action.parse_arg(val.as_slice()) {
+            match env::var(evar.name) {
+                Ok(val) => {
+                    match evar.action.parse_arg(&val[..]) {
                         Parsed => {
                             self.set_vars.insert(evar.varid);
                             continue;
                         }
                         Error(err) => {
-                            self.stderr.write_str(format!(
+                            write!(self.stderr,
                                 "WARNING: Environment variable {}: {}\n",
-                                evar.name, err).as_slice()).ok();
+                                evar.name, err).ok();
                         }
                         _ => unreachable!(),
                     }
                 }
-                None => {}
+                Err(_) => {}
             }
         }
         return Parsed;
@@ -507,12 +504,12 @@ pub struct Ref<'parser:'refer, 'refer, T: 'parser> {
 
 impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
 
-    pub fn add_option<'x>(&'x mut self, names: &[&'parser str],
-        action: Box<TypedAction<T>>, help: &'parser str)
+    pub fn add_option<'x, A: TypedAction<T>>(&'x mut self,
+        names: &[&'parser str], action: A, help: &'parser str)
         -> &'x mut Ref<'parser, 'refer, T>
     {
         {
-            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
+            let var = &mut self.parser.vars[self.varid];
             if var.metavar.len() == 0 {
                 let mut longest_name = names[0];
                 let mut llen = longest_name.len();
@@ -523,7 +520,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
                     }
                 }
                 if llen > 2 {
-                    var.metavar = longest_name.slice(2, llen)
+                    var.metavar = longest_name[2..llen]
                         .to_ascii_uppercase().replace("-", "_");
                 }
             }
@@ -534,8 +531,8 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         return self;
     }
 
-    pub fn add_argument<'x>(&'x mut self, name: &'parser str,
-        action: Box<TypedAction<T>>, help: &'parser str)
+    pub fn add_argument<'x, A: TypedAction<T>>(&'x mut self,
+        name: &'parser str, action: A, help: &'parser str)
         -> &'x mut Ref<'parser, 'refer, T>
     {
         let act = action.bind(self.cell.clone());
@@ -562,7 +559,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
             }
         }
         {
-            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
+            let var = &mut self.parser.vars[self.varid];
             if var.metavar.len() == 0 {
                 var.metavar = name.to_string();
             }
@@ -574,7 +571,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         -> &'x mut Ref<'parser, 'refer, T>
     {
         {
-            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
+            let var = &mut self.parser.vars[self.varid];
             var.metavar = name.to_string();
         }
         return self;
@@ -584,7 +581,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         -> &'x mut Ref<'parser, 'refer, T>
     {
         {
-            let var = &mut self.parser.vars.as_mut_slice()[self.varid];
+            let var = &mut self.parser.vars[self.varid];
             var.required = true;
         }
         return self;
@@ -606,7 +603,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
 
 pub struct ArgumentParser<'parser> {
     description: &'parser str,
-    vars: Vec<Box<Var<'parser>>>,
+    vars: Vec<Box<Var>>,
     options: Vec<Rc<GenericOption<'parser>>>,
     arguments: Vec<Rc<GenericArgument<'parser>>>,
     env_vars: Vec<Rc<EnvVar<'parser>>>,
@@ -709,9 +706,9 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn parse(&self, args: Vec<String>,
         stdout: &mut Writer, stderr: &mut Writer)
-        -> Result<(), isize>
+        -> Result<(), i32>
     {
-        let name = if args.len() > 0 { args[0].as_slice() } else { "unknown" };
+        let name = if args.len() > 0 { &args[0][..] } else { "unknown" };
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
@@ -720,7 +717,7 @@ impl<'parser> ArgumentParser<'parser> {
                 return Err(0);
             }
             Error(message) => {
-                self.error(name.as_slice(), message.as_slice(), stderr);
+                self.error(&name[..], &message[..], stderr);
                 return Err(2);
             }
         }
@@ -728,9 +725,7 @@ impl<'parser> ArgumentParser<'parser> {
 
     pub fn error(&self, command: &str, message: &str, writer: &mut Writer) {
         self.print_usage(command, writer).unwrap();
-        writer.write_str(
-            format!("{}: {}\n", command, message).as_slice()
-        ).unwrap();
+        write!(writer, "{}: {}\n", command, message).ok();
     }
 
     pub fn stop_on_first_argument(&mut self, want_stop: bool) {
@@ -741,8 +736,10 @@ impl<'parser> ArgumentParser<'parser> {
         self.silence_double_dash = silence;
     }
 
-    pub fn parse_args(&self) -> Result<(), isize> {
-        return self.parse(os::args(), &mut stdout(), &mut stderr());
+    pub fn parse_args(&self) -> Result<(), i32> {
+        // TODO(tailhook) can we get rid of collect?
+        return self.parse(env::args().collect(),
+            &mut stdout(), &mut stderr());
     }
 }
 
@@ -776,11 +773,11 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         num += arg.name.len();
         if num >= OPTION_WIDTH {
             try!(self.buf.write_char('\n'));
-            for _ in range(0, OPTION_WIDTH) {
+            for _ in 0..OPTION_WIDTH {
                 try!(self.buf.write_char(' '));
             }
         } else {
-            for _ in range(num, OPTION_WIDTH) {
+            for _ in num..OPTION_WIDTH {
                 try!(self.buf.write_char(' '));
             }
         }
@@ -805,18 +802,18 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
             Flag(_) => {}
             Single(_) | Push(_) | Many(_) => {
                 try!(self.buf.write_char(' '));
-                let var = &self.parser.vars.as_slice()[opt.varid.unwrap()];
-                try!(self.buf.write_str(var.metavar.as_slice()));
+                let var = &self.parser.vars[opt.varid.unwrap()];
+                try!(self.buf.write_str(&var.metavar[..]));
                 num += var.metavar.len() + 1;
             }
         }
         if num >= OPTION_WIDTH {
             try!(self.buf.write_char('\n'));
-            for _ in range(0, OPTION_WIDTH) {
+            for _ in 0..OPTION_WIDTH {
                 try!(self.buf.write_char(' '));
             }
         } else {
-            for _ in range(num, OPTION_WIDTH) {
+            for _ in num..OPTION_WIDTH {
                 try!(self.buf.write_char(' '));
             }
         }
@@ -859,7 +856,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
 
     fn write_usage(&mut self) -> IoResult<()> {
         try!(self.buf.write_str("Usage:\n    "));
-        try!(self.buf.write(self.name.as_bytes()));
+        try!(self.buf.write_all(self.name.as_bytes()));
         if self.parser.options.len() != 0 {
             if self.parser.short_options.len() > 1
                 || self.parser.long_options.len() > 1
@@ -867,26 +864,26 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 try!(self.buf.write_str(" [OPTIONS]"));
             }
             for opt in self.parser.arguments.iter() {
-                let var = &self.parser.vars.as_slice()[opt.varid];
+                let var = &self.parser.vars[opt.varid];
                 try!(self.buf.write_char(' '));
                 if !var.required {
                     try!(self.buf.write_char('['));
                 }
                 try!(self.buf.write_str(
-                    opt.name.to_ascii_uppercase().as_slice()));
+                    &opt.name.to_ascii_uppercase()[..]));
                 if !var.required {
                     try!(self.buf.write_char(']'));
                 }
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
-                    let var = &self.parser.vars.as_slice()[opt.varid];
+                    let var = &self.parser.vars[opt.varid];
                     try!(self.buf.write_char(' '));
                     if !var.required {
                         try!(self.buf.write_char('['));
                     }
                     try!(self.buf.write_str(
-                        opt.name.to_ascii_uppercase().as_slice()));
+                        &opt.name.to_ascii_uppercase()[..]));
                     if !var.required {
                         try!(self.buf.write_str(" ...]"));
                     } else {

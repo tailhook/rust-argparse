@@ -2,12 +2,12 @@ use std::str::FromStr;
 
 use parser::ArgumentParser;
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 use self::Greeting::{Hello, Hi, NoGreeting};
 
 
-#[derive(PartialEq, Eq, Show)]
+#[derive(PartialEq, Eq, Debug)]
 enum Greeting {
     Hello,
     Hi,
@@ -15,11 +15,12 @@ enum Greeting {
 }
 
 impl FromStr for Greeting {
-    fn from_str(src: &str) -> Option<Greeting> {
+    type Err = ();
+    fn from_str(src: &str) -> Result<Greeting, ()> {
         return match src {
-            "hello" => Some(Hello),
-            "hi" => Some(Hi),
-            _ => None,
+            "hello" => Ok(Hello),
+            "hi" => Ok(Hi),
+            _ => Err(()),
         };
     }
 }
@@ -29,7 +30,7 @@ fn parse_enum(args: &[&str]) -> Greeting {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-g"], box Store::<Greeting>,
+          .add_option(&["-g"], Store,
             "Greeting");
         check_ok(&ap, args);
     }

@@ -8,3 +8,5 @@
 /greeting
 /structure
 
+# Cargo files
+Cargo.lock

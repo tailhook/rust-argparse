@@ -1,14 +1,14 @@
 use parser::ArgumentParser;
 use super::{List, Store, Collect};
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn pos_list(args: &[&str]) -> (isize, Vec<isize>) {
     let mut val1 = 1;
     let mut val2 = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut val1).add_argument("v1", box Store::<isize>, "The value 1");
-        ap.refer(&mut val2).add_argument("v2", box List::<isize>, "The list of vals");
+        ap.refer(&mut val1).add_argument("v1", Store, "The value 1");
+        ap.refer(&mut val2).add_argument("v2", List, "The list of vals");
         check_ok(&ap, args);
     }
     return (val1, val2);
@@ -27,7 +27,7 @@ fn pos_collect(args: &[&str]) -> Vec<isize> {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut lst)
-            .add_argument("v", box Collect::<isize>, "The list of vals");
+            .add_argument("v", Collect, "The list of vals");
         check_ok(&ap, args);
     }
     return lst;
@@ -51,7 +51,7 @@ fn collect(args: &[&str]) -> Vec<isize> {
     let mut lst = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut lst).add_option(&["-a", "--add"], box Collect::<isize>,
+        ap.refer(&mut lst).add_option(&["-a", "--add"], Collect,
             "The list of vals");
         check_ok(&ap, args);
     }
@@ -77,7 +77,7 @@ fn list(args: &[&str]) -> Vec<isize> {
     let mut vec = Vec::new();
     {
         let mut ap = ArgumentParser::new();
-        ap.refer(&mut vec).add_option(&["-a", "--add"], box List::<isize>,
+        ap.refer(&mut vec).add_option(&["-a", "--add"], List,
             "The list of vals");
         check_ok(&ap, args);
     }

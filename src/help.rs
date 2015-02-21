@@ -1,5 +1,5 @@
 use std::str::CharIndices;
-use std::io::IoResult;
+use std::old_io::IoResult;
 
 use super::action::{IFlagAction, ParseResult};
 use super::action::ParseResult::Help;
@@ -44,15 +44,19 @@ impl<'a> Iterator for WordsIter<'a> {
                 }
             }
         }
-       for (idx, ch) in self.iter {
+        loop {
+            let (idx, ch) = match self.iter.next() {
+                None => break,
+                Some((idx, ch)) => ((idx, ch)),
+            };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => {
-                    return Some(self.data.slice(word_start, idx));
+                    return Some(&self.data[word_start..idx]);
                 }
                 _ => continue,
             }
         }
-        return Some(self.data.slice(word_start, self.data.len()));
+        return Some(&self.data[word_start..self.data.len()]);
     }
 }
 
@@ -73,7 +77,7 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
     for word in witer {
         if off + word.len() + 1 > width {
             try!(buf.write_char('\n'));
-            for _ in range(0, indent) {
+            for _ in 0..indent {
                 try!(buf.write_char(' '));
             }
             off = indent;
@@ -86,5 +90,3 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
     }
     return Ok(());
 }
-
-

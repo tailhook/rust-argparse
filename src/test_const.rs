@@ -1,7 +1,6 @@
 use parser::ArgumentParser;
-use super::Store;
 use super::{PushConst};
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 
 fn push_const(args: &[&str]) -> Vec<u32> {
@@ -9,11 +8,11 @@ fn push_const(args: &[&str]) -> Vec<u32> {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut res)
-          .add_option(&["-o", "--one"], box PushConst(1),
+          .add_option(&["-o", "--one"], PushConst(1),
             "Add one to the list")
-          .add_option(&["-t", "--two"], box PushConst(2),
+          .add_option(&["-t", "--two"], PushConst(2),
             "Add two to the list")
-          .add_option(&["-3", "--three"], box PushConst(3),
+          .add_option(&["-3", "--three"], PushConst(3),
             "Add three to the list");
         check_ok(&ap,  args);
     }

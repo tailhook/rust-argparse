@@ -3,10 +3,11 @@ containers:
   build:
     setup:
     - !Ubuntu trusty
-    - !Install [make, gcc]
+    - !Install [make, gcc, libc6-dev]
     - !TarInstall
-      url: http://static.rust-lang.org/dist/rust-1.0.0-alpha-x86_64-unknown-linux-gnu.tar.gz
-      script: ./install.sh --prefix=/usr
+      url: http://static.rust-lang.org/dist/rust-nightly-x86_64-unknown-linux-gnu.tar.gz
+      # We install rustc and cargo, but skip rust-docs
+      script: ./install.sh --prefix=/usr --components=rustc,cargo
     volumes:
       /tmp: !Tmpfs { size: 100Mi }
 

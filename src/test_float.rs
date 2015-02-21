@@ -1,16 +1,16 @@
 use parser::ArgumentParser;
 use super::{IncrBy,DecrBy};
 use super::Store;
-use test_parser::{check_ok,check_err};
+use test_parser::{check_ok};
 
 fn incr_decr(args: &[&str]) -> f32 {
     let mut val = 0f32;
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-d", "--decr"], box DecrBy(0.25f32),
+          .add_option(&["-d", "--decr"], DecrBy(0.25f32),
             "Decrement value")
-          .add_option(&["-i", "--incr"], box IncrBy(0.5f32),
+          .add_option(&["-i", "--incr"], IncrBy(0.5f32),
             "Increment value");
         check_ok(&ap, args);
     }
@@ -31,7 +31,7 @@ fn test_float() {
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val)
-          .add_option(&["-s", "--set"], box Store::<f64>,
+          .add_option(&["-s", "--set"], Store,
             "Set float value");
         check_ok(&ap, &["./argparse_test", "-s", "15.125"]);
     }
@@ -44,7 +44,7 @@ fn test_fail() {
     let mut val = 0.1;
     let mut ap = ArgumentParser::new();
     ap.refer(&mut val)
-      .add_option(&["-s", "--set"], box Store::<f64>,
+      .add_option(&["-s", "--set"], Store,
         "Set float value");
     check_ok(&ap, &["./argparse_test", "-s", "test"]);
 }

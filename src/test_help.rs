@@ -1,4 +1,3 @@
-use std::io::MemWriter;
 use std::str::from_utf8;
 
 use parser::ArgumentParser;
@@ -7,7 +6,7 @@ use super::{Store, List};
 #[test]
 fn test_empty() {
     let mut ap = ArgumentParser::new();
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     ap.set_description("Test program");
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
@@ -17,24 +16,24 @@ fn test_empty() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
 
 #[test]
 fn test_options() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
     let mut val2 = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program. The description of the program is ought
         to be very long, because we want to test how word wrapping works for
         it. So some more text would be ok for the test");
     ap.refer(&mut val)
-      .add_option(&["--value"], box Store::<isize>,
+      .add_option(&["--value"], Store,
         "Set integer value");
     ap.refer(&mut val2)
-      .add_option(&["-L", "--long-option"], box Store::<isize>,
+      .add_option(&["-L", "--long-option"], Store,
         "Long option value");
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]
@@ -48,18 +47,18 @@ for the test\n"
         + "  --value VALUE         Set integer value\n"
         + "  -L,--long-option LONG_OPTION\n"
         + "                        Long option value\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
 
 #[test]
 fn test_argument() {
-    let mut ap = ArgumentParser::new();
     let mut val = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut val)
-      .add_argument("value", box Store::<isize>,
+      .add_argument("value", Store,
         "Integer value");
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [VALUE]\n"
@@ -71,22 +70,22 @@ fn test_argument() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
 
 #[test]
 fn test_arguments() {
-    let mut ap = ArgumentParser::new();
     let mut v1 = 0;
-    let mut v2 = Vec::new();
+    let mut v2 = Vec::<u32>::new();
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
-      .add_argument("v1", box Store::<isize>,
+      .add_argument("v1", Store,
         "Integer value 1");
     ap.refer(&mut v2)
-      .add_argument("v2", box List::<isize>,
+      .add_argument("v2", List,
         "More values");
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [V1] [V2 ...]\n"
@@ -99,24 +98,24 @@ fn test_arguments() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
 
 #[test]
 fn test_req_arguments() {
-    let mut ap = ArgumentParser::new();
     let mut v1 = 0;
-    let mut v2 = Vec::new();
+    let mut v2 = Vec::<u32>::new();
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program");
     ap.refer(&mut v1)
-      .add_argument("v1", box Store::<isize>,
+      .add_argument("v1", Store,
         "Integer value 1")
       .required();
     ap.refer(&mut v2)
-      .add_argument("v2", box List::<isize>,
+      .add_argument("v2", List,
         "More values")
       .required();
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test V1 V2 [...]\n"
@@ -129,19 +128,19 @@ fn test_req_arguments() {
         + "\n"
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
 
 #[test]
 fn test_metavar() {
-    let mut ap = ArgumentParser::new();
     let mut val2 = 0;
+    let mut ap = ArgumentParser::new();
     ap.set_description("Test program.");
     ap.refer(&mut val2)
-      .add_option(&["-L", "--long-option"], box Store::<isize>,
+      .add_option(&["-L", "--long-option"], Store,
         "Long option value")
       .metavar("VAL");
-    let mut buf = MemWriter::new();
+    let mut buf = Vec::<u8>::new();
     assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]\n"
@@ -151,5 +150,5 @@ fn test_metavar() {
         + "optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  -L,--long-option VAL  Long option value\n"
-        , from_utf8(buf.into_inner().as_slice()).unwrap().to_string());
+        , from_utf8(&buf[..]).unwrap().to_string());
 }
