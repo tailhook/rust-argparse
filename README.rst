@@ -203,21 +203,13 @@ Variable Reference Methods
 The ``argparse::Ref`` object is returned from ``parser.refer()``.
 The following methods are used to add and customize arguments:
 
-<<<<<<< HEAD
-``option.add_option(names: &[&str], action: Box<TypedAction>, help: &str)``
-=======
 ``option.add_option(names: &[&str], action: TypedAction, help: &str)``
->>>>>>> rust-nightly
     Add an option. All items in names should be either in format ``-X`` or
     ``--long-option`` (i.e. one dash and one char or two dashes and long name).
     How this option will be interpreted and whether it will have an argument
     dependes on the action. See below list of actions.
 
-<<<<<<< HEAD
-``option.add_argument(name: &str, action: Box<TypedAction>, help: &str)``
-=======
 ``option.add_argument(name: &str, action: TypedAction, help: &str)``
->>>>>>> rust-nightly
     Add a positional argument
 
 ``option.metavar(var: &str)``
@@ -237,14 +229,7 @@ The following actions are available out of the box. They may be used in either
 
 ``Store``
     An option has single argument. Stores a value from command-line in a
-    variable. Any type that has ``FromStr`` trait implemented may be used. This
-<<<<<<< HEAD
-    action must be specified with ``Box::new(Store::<TYPE>)`` syntax, because of
-=======
-    action must be specified with ``Store`` syntax, because of
->>>>>>> rust-nightly
-    limitation of rust type deriving algorithm. (Known types to work are all
-    integer and floating types, str and path).
+    variable. Any type that has ``FromStr`` trait implemented may be used.
 
 ``StoreConst(value)``
     An option has no arguments. Store a hard-coded ``value`` into variable,
@@ -276,11 +261,7 @@ The following actions are available out of the box. They may be used in either
 ``Collect``
     When used for an ``--option``, requires single argument. When used for a
     positional argument consumes all remaining arguments. Parsed options are
-<<<<<<< HEAD
-    added to the list. I.e. a ``Box::new(Collect::<int>)`` action requires a
-=======
     added to the list. I.e. a ``Collect`` action requires a
->>>>>>> rust-nightly
     ``Vec<int>`` variable. Parses arguments using ``FromStr`` trait.
 
 ``List``
@@ -294,13 +275,8 @@ The following actions are available out of the box. They may be used in either
 
     Let's learn rules by example. For the next options::
 
-<<<<<<< HEAD
-        ap.refer(&mut lst1).add_option(["-X", "--xx"], Box::new(List::<int>), "List1");
-        ap.refer(&mut lst2).add_argument("yy", Box::new(List::<int>), "List2");
-=======
-        ap.refer(&mut lst1).add_option(["-X", "--xx"], List, "List1");
+        ap.refer(&mut lst1).add_option(&["-X", "--xx"], List, "List1");
         ap.refer(&mut lst2).add_argument("yy", List, "List2");
->>>>>>> rust-nightly
 
     The following command line::
 
