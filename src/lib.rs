@@ -1,6 +1,6 @@
 #![crate_name = "argparse"]
 #![crate_type = "lib"]
-#![feature(int_uint, old_io, env, std_misc)]
+#![feature(old_io, env, std_misc)]
 
 pub use self::parser::{ArgumentParser, Ref};
 

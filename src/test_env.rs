@@ -6,8 +6,8 @@ use test_parser::{check_ok};
 
 
 fn required(args: &[&str]) -> (isize, isize) {
-    let mut val1 = 1is;
-    let mut val2 = 2is;
+    let mut val1 = 1isize;
+    let mut val2 = 2isize;
     {
         let mut ap = ArgumentParser::new();
         ap.refer(&mut val1)

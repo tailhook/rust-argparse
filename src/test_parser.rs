@@ -28,7 +28,7 @@ pub fn check_exit(ap: &ArgumentParser, args: &[&str]) {
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(0) => return,
-        Err(x) => panic!(format!("Expected code {} got {}", 0us, x)),
+        Err(x) => panic!(format!("Expected code {} got {}", 0usize, x)),
         Ok(()) => panic!(format!("Expected failure, got success")),
     }
 }
@@ -43,7 +43,7 @@ pub fn check_err(ap: &ArgumentParser, args: &[&str]) {
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
         Err(2) => return,
-        Err(x) => panic!(format!("Expected code {} got {}", 2us, x)),
+        Err(x) => panic!(format!("Expected code {} got {}", 2usize, x)),
         Ok(()) => panic!(format!("Expected failure, got success")),
     }
 }
