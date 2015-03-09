@@ -34,38 +34,38 @@ pub struct ListAction<'a, T: 'a> {
 impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
         let StoreConst(val) = *self;
-        return Flag(box StoreConstAction { cell: cell, value: val });
+        return Flag(Box::new(StoreConstAction { cell: cell, value: val }));
     }
 }
 
 impl<T: 'static + Copy> TypedAction<Vec<T>> for PushConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
         let PushConst(val) = *self;
-        return Flag(box PushConstAction { cell: cell, value: val });
+        return Flag(Box::new(PushConstAction { cell: cell, value: val }));
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<T> for Store {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
-        return Single(box StoreAction { cell: cell });
+        return Single(Box::new(StoreAction { cell: cell }));
     }
 }
 
 impl<T: 'static + FromStr> TypedAction<Option<T>> for StoreOption {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Option<T>>>) -> Action<'x> {
-        return Single(box StoreOptionAction { cell: cell });
+        return Single(Box::new(StoreOptionAction { cell: cell }));
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for List {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
-        return Many(box ListAction { cell: cell });
+        return Many(Box::new(ListAction { cell: cell }));
     }
 }
 
 impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
-        return Push(box ListAction { cell: cell });
+        return Push(Box::new(ListAction { cell: cell }));
     }
 }
 

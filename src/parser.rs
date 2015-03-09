@@ -595,7 +595,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
         self.parser.env_vars.push(Rc::new(EnvVar {
             varid: self.varid,
             name: varname,
-            action: box StoreAction { cell: self.cell.clone() },
+            action: Box::new(StoreAction { cell: self.cell.clone() }),
             }));
         return self;
     }
@@ -632,7 +632,7 @@ impl<'parser> ArgumentParser<'parser> {
             stop_on_first_argument: false,
             silence_double_dash: true,
             };
-        ap.add_option_for(None, &["-h", "--help"], Flag(box HelpAction),
+        ap.add_option_for(None, &["-h", "--help"], Flag(Box::new(HelpAction)),
             "show this help message and exit");
         return ap;
     }
@@ -642,16 +642,16 @@ impl<'parser> ArgumentParser<'parser> {
     {
         let cell = Rc::new(RefCell::new(val));
         let id = self.vars.len();
-        self.vars.push(box Var {
+        self.vars.push(Box::new(Var {
                 id: id,
                 required: false,
                 metavar: "".to_string(),
-                });
-        return box Ref {
+                }));
+        return Box::new(Ref {
             cell: cell.clone(),
             varid: id,
             parser: self,
-        };
+        });
     }
 
     pub fn set_description(&mut self, descr: &'parser str) {
