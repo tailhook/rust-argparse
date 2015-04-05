@@ -1,5 +1,7 @@
 extern crate argparse;
 
+use std::process::exit;
+
 use argparse::{ArgumentParser, StoreTrue, Store};
 
 struct Options {
@@ -24,11 +26,7 @@ fn main() {
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                // We should set exit status, but rust 1.0.0-beta has
-                // unstable set_exit_status, so we panic, temporarily
-                panic!("Command line error. Error code {}", x);
-                // set_exit_status(x);
-                // return;
+                exit(x);
             }
         }
     }
