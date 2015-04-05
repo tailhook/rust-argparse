@@ -23,7 +23,7 @@ fn required(args: &[&str]) -> (isize, isize) {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_required() {
     env::set_var("TEST_ENV_REQUIRED_V1", "some_crap");
     required(&["./argparse_test"]);

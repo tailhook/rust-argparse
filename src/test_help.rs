@@ -8,7 +8,7 @@ fn test_empty() {
     let mut ap = ArgumentParser::new();
     let mut buf = Vec::<u8>::new();
     ap.set_description("Test program");
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test\n"
         + "\n"
@@ -34,7 +34,7 @@ fn test_options() {
       .add_option(&["-L", "--long-option"], Store,
         "Long option value");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]
 
@@ -59,7 +59,7 @@ fn test_argument() {
       .add_argument("value", Store,
         "Integer value");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [VALUE]\n"
         + "\n"
@@ -86,7 +86,7 @@ fn test_arguments() {
       .add_argument("v2", List,
         "More values");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [V1] [V2 ...]\n"
         + "\n"
@@ -116,7 +116,7 @@ fn test_req_arguments() {
         "More values")
       .required();
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test V1 V2 [...]\n"
         + "\n"
@@ -141,7 +141,7 @@ fn test_metavar() {
         "Long option value")
       .metavar("VAL");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_help("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
         + "    ./argparse_test [OPTIONS]\n"
         + "\n"

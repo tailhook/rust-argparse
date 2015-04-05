@@ -22,7 +22,7 @@ fn test_str() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_err() {
     parse_str(&["./argparse_test", "--set"]);
 }

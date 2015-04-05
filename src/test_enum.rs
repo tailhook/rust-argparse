@@ -45,7 +45,7 @@ fn test_parse_enum() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_parse_error() {
     parse_enum(&["./argparse_test", "-ghell"]);
 }

@@ -78,7 +78,7 @@ fn test_set_int() {
 }
 
 #[test]
-#[should_fail(message="bad bad bad")]
+#[should_panic(expected="Bad value 1.5")]
 fn test_set_int_bad() {
     set_int(&["./argparse_test", "-s1.5"]);
 }
@@ -101,7 +101,7 @@ fn test_i16() {
 }
 
 #[test]
-#[should_fail(message="bad bad bad")]
+#[should_panic(expected="Bad value 1000000")]
 fn test_i16_big() {
     set_i16(&["./argparse_test", "-s", "1000000"]);
 }

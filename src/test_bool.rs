@@ -86,13 +86,13 @@ fn test_set_bool() {
 }
 
 #[test]
-#[should_fail(message="Bad value yes")]
+#[should_panic(expected="Bad value yes")]
 fn test_bad_bools1() {
     assert!(!set_bool(&["./argparse_test", "-syes"]));
 }
 
 #[test]
-#[should_fail(message="Bad value no")]
+#[should_panic(expected="Bad value no")]
 fn test_bad_bools2() {
     assert!(!set_bool(&["./argparse_test", "-sno"]));
 }

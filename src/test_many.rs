@@ -42,7 +42,7 @@ fn test_pos_collect() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn wrong_type() {
     pos_collect(&["./argparse_test", "10", "20", "test"]);
 }
@@ -68,7 +68,7 @@ fn test_collect() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_extra() {
     collect(&["./argparse_test", "-a", "10", "20", "30"]);
 }
@@ -85,7 +85,7 @@ fn list(args: &[&str]) -> Vec<isize> {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_list() {
     assert_eq!(list(&["./argparse_test", "-a10"]), vec!(10));
     assert_eq!(list(&["./argparse_test", "--add", "11", "21"]), vec!(11, 21));

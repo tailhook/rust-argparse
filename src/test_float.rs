@@ -39,7 +39,7 @@ fn test_float() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_fail() {
     let mut val = 0.1;
     let mut ap = ArgumentParser::new();

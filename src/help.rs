@@ -1,5 +1,6 @@
 use std::str::CharIndices;
-use std::old_io::IoResult;
+use std::io::Result as IoResult;
+use std::io::Write;
 
 use super::action::{IFlagAction, ParseResult};
 use super::action::ParseResult::Help;
@@ -60,7 +61,7 @@ impl<'a> Iterator for WordsIter<'a> {
     }
 }
 
-pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
+pub fn wrap_text(buf: &mut Write, data: &str, width: usize, indent: usize)
     -> IoResult<()>
 {
     let mut witer = WordsIter::new(data);
@@ -70,22 +71,22 @@ pub fn wrap_text(buf: &mut Writer, data: &str, width: usize, indent: usize)
             return Ok(());
         }
         Some(word) => {
-            try!(buf.write_str(word));
+            try!(buf.write(word.as_bytes()));
             off += word.len();
         }
     }
     for word in witer {
         if off + word.len() + 1 > width {
-            try!(buf.write_char('\n'));
+            try!(buf.write(b"\n"));
             for _ in 0..indent {
-                try!(buf.write_char(' '));
+                try!(buf.write(b" "));
             }
             off = indent;
         } else {
-            try!(buf.write_char(' '));
+            try!(buf.write(b" "));
             off += 1;
         }
-        try!(buf.write_str(word));
+        try!(buf.write(word.as_bytes()));
         off += word.len();
     }
     return Ok(());

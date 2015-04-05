@@ -22,7 +22,7 @@ fn test_opt() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_opt_no_arg() {
     opt(&["./argparse_test", "--set"]);
 }
@@ -48,7 +48,7 @@ fn test_str() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_str_no_art() {
     optstr(&["./argparse_test", "--set"]);
 }

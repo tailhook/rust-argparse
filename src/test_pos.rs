@@ -20,19 +20,19 @@ fn test_argument() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn too_much_args() {
     parse_pos(&["./argparse_test", "10", "20"]);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn wrong_value() {
     parse_pos(&["./argparse_test", "test", "20"]);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn float_value() {
     parse_pos(&["./argparse_test", "1.5"]);
 }
@@ -58,19 +58,19 @@ fn test_two() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_two_fail_many() {
     parse_two(&["./argparse_test", "10", "20", "30"]);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_two_fail_value() {
     parse_two(&["./argparse_test", "test", "20"]);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_two_fail_float() {
     parse_two(&["./argparse_test", "1.5"]);
 }
@@ -99,7 +99,7 @@ fn test_positional_optional() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_pos_opt_err() {
     parse_pos_opt(&["./argparse_test", "--v1=10", "20", "30"]);
 }
@@ -129,13 +129,13 @@ fn test_positional_required() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_pos_extra() {
     parse_pos_req(&["./argparse_test", "--v1=10", "20", "30"]);
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_pos_no_req() {
     parse_pos_req(&["./argparse_test"]);
 }
@@ -168,7 +168,7 @@ fn test_pos_stop() {
 }
 
 #[test]
-#[should_fail]
+#[should_panic]
 fn test_test() {
     pos_stop(&["./argparse_test"]);
 }

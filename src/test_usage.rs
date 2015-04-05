@@ -7,7 +7,7 @@ use super::{Store, List};
 fn test_empty() {
     let ap = ArgumentParser::new();
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n    ./argparse_test\n", from_utf8(&buf[..]).unwrap());
 }
 
@@ -20,7 +20,7 @@ fn test_options() {
         ap.refer(&mut val)
           .add_option(&["--value"], Store,
             "Set integer value");
-        assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+        assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
     }
     assert_eq!("Usage:\n    ./argparse_test [OPTIONS]\n",
         from_utf8(&buf[..]).unwrap());
@@ -34,7 +34,7 @@ fn test_argument() {
       .add_argument("value", Store,
         "Integer value");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n    ./argparse_test [VALUE]\n",
         from_utf8(&buf[..]).unwrap());
 }
@@ -51,7 +51,7 @@ fn test_arguments() {
       .add_argument("v2", List,
         "More values");
     let mut buf = Vec::<u8>::new();
-    assert_eq!(ap.print_usage("./argparse_test", &mut buf), Ok(()));
+    assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n    ./argparse_test [V1] [V2 ...]\n",
         from_utf8(&buf[..]).unwrap());
 }
