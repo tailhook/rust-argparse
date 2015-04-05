@@ -1,8 +1,4 @@
-#![feature(env)]
-
 extern crate argparse;
-
-use std::env::set_exit_status;
 
 use argparse::{ArgumentParser, StoreTrue, Store};
 
@@ -21,8 +17,11 @@ fn main() {
         match ap.parse_args() {
             Ok(()) => {}
             Err(x) => {
-                set_exit_status(x);
-                return;
+                // We should set exit status, but rust 1.0.0-beta has
+                // unstable set_exit_status, so we panic, temporarily
+                panic!("Command line error. Error code {}", x);
+                // set_exit_status(x);
+                // return;
             }
         }
     }

@@ -19,7 +19,7 @@ commands:
 
   test: !Command
     container: build
-    run: make test
+    run: [make, test]
 
   example-greeting: !Command
     description: Build and run "greeting" example
