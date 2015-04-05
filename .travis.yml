@@ -1,2 +1,2 @@
 language: rust
-rust: 1.0.0-alpha.2
+rust: 1.0.0-beta
