@@ -10,6 +10,7 @@ use std::hash::Hash;
 use std::hash::Hasher;
 use std::ascii::AsciiExt;
 use std::str::FromStr;
+use std::process::exit;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
@@ -742,6 +743,13 @@ impl<'parser> ArgumentParser<'parser> {
         // TODO(tailhook) can we get rid of collect?
         return self.parse(env::args().collect(),
             &mut stdout(), &mut stderr());
+    }
+
+    pub fn parse_args_or_exit(&self) {
+        // TODO(tailhook) can we get rid of collect?
+        self.parse(env::args().collect(), &mut stdout(), &mut stderr())
+            .map_err(|c| exit(c))
+            .ok();
     }
 }
 

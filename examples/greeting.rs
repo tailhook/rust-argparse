@@ -1,7 +1,5 @@
 extern crate argparse;
 
-use std::process::exit;
-
 use argparse::{ArgumentParser, StoreTrue, Store};
 
 fn main() {
@@ -16,12 +14,7 @@ fn main() {
         ap.refer(&mut name)
             .add_option(&["--name"], Store,
             "Name for the greeting");
-        match ap.parse_args() {
-            Ok(()) => {}
-            Err(x) => {
-                exit(x);
-            }
-        }
+        ap.parse_args_or_exit();
     }
 
     if verbose {

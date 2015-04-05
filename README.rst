@@ -21,7 +21,7 @@ The following code is a simple Rust program with command-line arguments:
 
     extern crate argparse;
 
-    use std::os;
+    use std::process::exit;
 
     use argparse::{ArgumentParser, StoreTrue, Store};
 
@@ -37,13 +37,7 @@ The following code is a simple Rust program with command-line arguments:
             ap.refer(&mut name)
                 .add_option(&["--name"], Store,
                 "Name for the greeting");
-            match ap.parse_args() {
-                Ok(()) => {}
-                Err(x) => {
-                    os::set_exit_status(x);
-                    return;
-                }
-            }
+            ap.parse_args_or_exit();
         }
 
         if verbose {
@@ -153,14 +147,18 @@ easily borrow variables from the structure into option parser. For example::
 Parsing Arguments
 -----------------
 
-All the complex work is done in ``parser.parser_args()``, however, because
-no exit function exists in rust, some more lines of code needed to check
-the result::
+All the complex work is done in ``parser.parse_args()``. But there is
+a simpler option::
+
+    parser.parse_args_or_exit()
+
+In case you don't want argparse to exit itself, you might use the
+``parse_args`` function directly::
 
     match parser.parse_args() {
         Ok(()) =>  {}
         Err(x) => {
-            os::set_exit_status(x);
+            std::process::exit(x);
             return;
         }
     }
@@ -194,7 +192,10 @@ ArgumentParser Methods
     Writes help to ``writer``, used by ``--help`` option internally.
 
 ``parser.parse_args()``
-    Method that does all the dirty work.
+    Method that does all the dirty work. And returns ``Result``
+
+``parser.parse_args_or_exit()``
+    Method that does all the dirty work. And in case of failure just ``exit()``
 
 
 Variable Reference Methods
