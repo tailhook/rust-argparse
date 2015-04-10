@@ -11,6 +11,14 @@ Features:
 * Properly typed values
 * Automatically generated help and usage messages
 
+Importing
+=========
+Edit your Cargo.toml to add rust-argparse to your project. 
+
+.. code-block:: toml
+    [dependencies]
+    argparse = "*"
+
 
 Example
 =======
@@ -299,6 +307,3 @@ The following actions are available out of the box. They may be used in either
 
     Both of the above parse ``[4, 5, 6]`` as ``lst1`` and
     the ``[1, 2, 3]`` as the ``lst2``.
-
-
-
