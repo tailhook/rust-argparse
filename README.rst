@@ -13,10 +13,12 @@ Features:
 
 Importing
 =========
-Edit your Cargo.toml to add rust-argparse to your project. 
+Edit your Cargo.toml to add rust-argparse to your project.
 
-.. code-block:: toml
+.. code-block:: rust
+
     [dependencies]
+
     argparse = "*"
 
 
