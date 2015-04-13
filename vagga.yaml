@@ -8,6 +8,8 @@ containers:
       url: http://static.rust-lang.org/dist/rust-1.0.0-beta-x86_64-unknown-linux-gnu.tar.gz
       # We install rustc and cargo, but skip rust-docs
       script: ./install.sh --prefix=/usr --components=rustc,cargo
+    environ:
+      HOME: /work/run
     volumes:
       /tmp: !Tmpfs { size: 100Mi }
 
