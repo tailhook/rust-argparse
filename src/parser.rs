@@ -208,7 +208,6 @@ impl<'a, 'b> Context<'a, 'b> {
         let mut equals_iter = arg.splitn(2, '=');
         let optname = equals_iter.next().unwrap();
         let valueref = equals_iter.next();
-        println!("OPTNAME {:?} {:?}", arg, optname);
         let opt = self.parser.long_options.get(&optname.to_string());
         match opt {
             Some(opt) => {
