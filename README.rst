@@ -231,6 +231,11 @@ The following methods are used to add and customize arguments:
     would be parsed with ``FromStr::from_str``, just like an option having
     ``Store`` action.
 
+``option.required()``
+    The option or argument is required (it's optional by default). If multiple
+    options or multiple arguments are defined for this reference at least one
+    of them is required.
+
 
 Actions
 =======
@@ -249,7 +254,7 @@ The following actions are available out of the box. They may be used in either
 ``PushConst(value)``
     An option has no arguments. Push a hard-coded ``value`` into variable,
     when specified. Any type may be used. Option might used for a list of
-    operations to perform, when ``require`` is set for this option, at least
+    operations to perform, when ``required`` is set for this variable, at least
     one operation is required.
 
 ``StoreTrue``
