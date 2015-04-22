@@ -169,7 +169,6 @@ In case you don't want argparse to exit itself, you might use the
         Ok(()) =>  {}
         Err(x) => {
             std::process::exit(x);
-            return;
         }
     }
 

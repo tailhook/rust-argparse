@@ -9,7 +9,7 @@ argparse_test: src/lib.rs src/*.rs
 libargparse.rlib: src/lib.rs src/*.rs
 	rustc -o $@ $<
 
-examples: greeting structure
+examples: greeting structure subcommands
 
 %: examples/%.rs libargparse.rlib
 	rustc -o $@ $< -L .

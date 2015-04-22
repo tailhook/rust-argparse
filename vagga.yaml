@@ -39,4 +39,10 @@ commands:
       make structure
       ./structure "$@"
 
-
+  example-subcommands: !Command
+    description: Build and run "subcommands" example
+    container: build
+    accepts-arguments: true
+    run: |
+      make subcommands
+      ./subcommands "$@"
