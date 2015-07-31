@@ -109,7 +109,7 @@ Add Options
 -----------
 
 The ``refer`` method creates a cell variable, which the result will be written
-to:
+to::
 
     let mut verbose = false;
     parser.refer(&mut verbose);
