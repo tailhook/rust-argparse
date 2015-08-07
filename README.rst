@@ -176,7 +176,7 @@ In case you don't want argparse to exit itself, you might use the
 ArgumentParser Methods
 ======================
 
-``parser.refer<T>(&mut self, var: &mut T) -> Ref``
+``parser.refer<T>(var: &mut T) -> Ref``
     Attach the variable to argument parser. The options are added to the
     returned ``Ref`` object and modify a variable passed to the method.
 
@@ -194,10 +194,10 @@ ArgumentParser Methods
     dash ``--`` as positional argument. Use ``false`` if you need to add some
     meaning to the ``--`` marker.
 
-``parser.print_usage(writer: Writer)``
+``parser.print_usage(name: &str, writer: &mut Write)``
     Prints usage string to stderr.
 
-``parser.print_help(writer: Writer)``
+``parser.print_help(name: &str, writer: &mut Write)``
     Writes help to ``writer``, used by ``--help`` option internally.
 
 ``parser.parse_args()``
