@@ -31,8 +31,6 @@ The following code is a simple Rust program with command-line arguments:
 
     extern crate argparse;
 
-    use std::process::exit;
-
     use argparse::{ArgumentParser, StoreTrue, Store};
 
     fn main() {
@@ -164,6 +162,8 @@ a simpler option::
 
 In case you don't want argparse to exit itself, you might use the
 ``parse_args`` function directly::
+
+    use std::process::exit;
 
     match parser.parse_args() {
         Ok(()) =>  {}
