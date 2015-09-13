@@ -13,7 +13,7 @@ mod bool;
 mod num;
 mod from_cli;
 
-pub trait FromCommandLine {
+pub trait FromCommandLine: Sized {
     fn from_argument(s: &str) -> Result<Self, String>;
 }
 
