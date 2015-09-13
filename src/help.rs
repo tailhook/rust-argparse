@@ -31,7 +31,7 @@ impl<'a> WordsIter<'a> {
 impl<'a> Iterator for WordsIter<'a> {
     type Item = &'a str;
     fn next(&mut self) -> Option<&'a str> {
-        let mut word_start;
+        let word_start;
         loop {
             let (idx, ch) = match self.iter.next() {
                 None => return None,

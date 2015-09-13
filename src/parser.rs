@@ -324,7 +324,7 @@ impl<'a, 'b> Context<'a, 'b> {
     fn parse_arguments(&mut self) -> ParseResult {
         let mut pargs = self.parser.arguments.iter();
         for arg in self.arguments.iter() {
-            let mut opt;
+            let opt;
             loop {
                 match pargs.next() {
                     Some(option) => {
