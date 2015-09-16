@@ -603,6 +603,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
     }
 }
 
+/// The main argument parser class
 pub struct ArgumentParser<'parser> {
     description: &'parser str,
     vars: Vec<Box<Var>>,
@@ -620,6 +621,7 @@ pub struct ArgumentParser<'parser> {
 
 impl<'parser> ArgumentParser<'parser> {
 
+    /// Create an empty argument parser
     pub fn new() -> ArgumentParser<'parser> {
 
         let mut ap = ArgumentParser {
@@ -639,6 +641,9 @@ impl<'parser> ArgumentParser<'parser> {
         return ap;
     }
 
+    /// Borrow mutable variable for an argument
+    ///
+    /// This returns `Ref` object which should be used configure the option
     pub fn refer<'x, T>(&'x mut self, val: &'parser mut T)
         -> Box<Ref<'parser, 'x, T>>
     {
@@ -656,6 +661,7 @@ impl<'parser> ArgumentParser<'parser> {
         });
     }
 
+    /// Set description of the command
     pub fn set_description(&mut self, descr: &'parser str) {
         self.description = descr;
     }
@@ -697,15 +703,26 @@ impl<'parser> ArgumentParser<'parser> {
         self.options.push(opt);
     }
 
+    /// Print help
+    ///
+    /// Usually command-line option is used for printing help,
+    /// this is here for any awkward cases
     pub fn print_help(&self, name: &str, writer: &mut Write) -> IoResult<()> {
         return HelpFormatter::print_help(self, name, writer);
     }
 
+    /// Print usage
+    ///
+    /// Usually printed into stderr on error of command-line parsing
     pub fn print_usage(&self, name: &str, writer: &mut Write) -> IoResult<()>
     {
         return HelpFormatter::print_usage(self, name, writer);
     }
 
+    /// Parse arguments
+    ///
+    /// This is most powerful method. Usually you need `parse_args`
+    /// or `parse_args_or_exit` instead
     pub fn parse(&self, args: Vec<String>,
         stdout: &mut Write, stderr: &mut Write)
         -> Result<(), i32>
@@ -725,25 +742,54 @@ impl<'parser> ArgumentParser<'parser> {
         }
     }
 
+    /// Write an error similar to one produced by the library itself
+    ///
+    /// Only needed if you like to do some argument validation that is out
+    /// of scope of the argparse
     pub fn error(&self, command: &str, message: &str, writer: &mut Write) {
         self.print_usage(command, writer).unwrap();
         write!(writer, "{}: {}\n", command, message).ok();
     }
 
+    /// Configure parser to ignore options when first non-option argument is
+    /// encountered.
+    ///
+    /// Useful for commands that want to pass following options to the
+    /// subcommand or subprocess, but need some options to be set before
+    /// command is specified.
     pub fn stop_on_first_argument(&mut self, want_stop: bool) {
         self.stop_on_first_argument = want_stop;
     }
 
+    /// Do not put double-dash (bare `--`) into argument
+    ///
+    /// The double-dash is used to stop parsing options and treat all the
+    /// following tokens as the arguments regardless of whether they start
+    /// with dash (minus) or not.
+    ///
+    /// The method only useful for `List` arguments. On by default. The method
+    /// allows to set option to `false` so that `cmd xx -- yy` will get
+    /// ``xx -- yy`` as arguments instead of ``xx yy`` by default. This is
+    /// useful if your ``--`` argument is meaningful. Only first double-dash
+    /// is ignored by default.
     pub fn silence_double_dash(&mut self, silence: bool) {
         self.silence_double_dash = silence;
     }
 
+    /// Convenience method to parse arguments
+    ///
+    /// On error returns error code that is supposed to be returned by
+    /// an application. (i.e. zero on `--help` and `2` on argument error)
     pub fn parse_args(&self) -> Result<(), i32> {
         // TODO(tailhook) can we get rid of collect?
         return self.parse(env::args().collect(),
             &mut stdout(), &mut stderr());
     }
 
+    /// The simplest conveninece method
+    ///
+    /// The method returns only in case of successful parsing or exits with
+    /// appropriate code (including successful on `--help`) otherwise.
     pub fn parse_args_or_exit(&self) {
         // TODO(tailhook) can we get rid of collect?
         self.parse(env::args().collect(), &mut stdout(), &mut stderr())
