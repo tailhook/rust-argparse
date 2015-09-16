@@ -1,2 +1,24 @@
 language: rust
-rust: stable
+rust:
+- 1.0.0
+- 1.1.0
+- 1.2.0
+- stable
+- beta
+- nightly
+sudo: false
+env:
+  secure: "lWnOk8yrzYf+QAR7d9LNvFnGrBmCGypev+Li4DXWitbOCacVTWYFGmcuZt7qy5hl1D56N5Y17xI9elyM4CPsoxiK/KxyQd80rnZKZgmhh+bQdw3LEEbqnA+acmNa7aEfIBlzFlk3ru2COZioQVih2sFqYrkaWGgCB3JH7o7AQT8="
+script:
+- cargo build --verbose
+# don't run doc tests because they don't run well for macros
+- cargo test test --verbose
+after_success: |
+  [ $TRAVIS_RUST_VERSION = stable ] &&
+  [ $TRAVIS_BRANCH = master ] &&
+  [ $TRAVIS_PULL_REQUEST = false ] &&
+  cargo doc &&
+  echo "<meta http-equiv=refresh content=0;url=argparse/index.html>" > target/doc/index.html &&
+  pip install ghp-import --user &&
+  ~/.local/bin/ghp-import -n target/doc &&
+  git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
