@@ -246,6 +246,13 @@ The following actions are available out of the box. They may be used in either
     An option has single argument. Stores a value from command-line in a
     variable. Any type that has ``FromStr`` trait implemented may be used.
 
+``StoreOption``
+    As ``Store``, but wrap value with ``Some`` for use with ``Option``. For
+    example:
+    
+        let mut x: Option<i32> = None;
+        ap.refer(&mut x).add_option(&["-x"], StoreOption, "Set var x");
+
 ``StoreConst(value)``
     An option has no arguments. Store a hard-coded ``value`` into variable,
     when specified. Any type may be used.
