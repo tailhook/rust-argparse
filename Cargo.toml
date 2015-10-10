@@ -6,6 +6,6 @@ license = "MIT"
 readme = "README.rst"
 keywords = ["command-line", "cli", "command", "argument"]
 homepage = "http://github.com/tailhook/rust-argparse"
-version = "0.2.0"
+version = "0.2.1"
 authors = ["paul@colomiets.name"]
 
