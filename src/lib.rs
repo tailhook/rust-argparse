@@ -8,6 +8,7 @@ pub mod parser;
 mod generic;
 mod custom;
 mod help;
+mod print;
 
 mod bool;
 mod num;
@@ -36,6 +37,11 @@ pub struct ParseList;
 
 pub struct Collect;
 pub struct ParseCollect;
+
+/// Print string and exit with status 0
+///
+/// Particularly useful for `--version` option and similar
+pub struct Print(pub String);
 
 pub struct IncrBy<T>(pub T);
 

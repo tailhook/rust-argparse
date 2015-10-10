@@ -1,6 +1,6 @@
 extern crate argparse;
 
-use argparse::{ArgumentParser, StoreTrue, Store};
+use argparse::{ArgumentParser, StoreTrue, Store, Print};
 
 fn main() {
     let mut verbose = false;
@@ -8,6 +8,8 @@ fn main() {
     {
         let mut ap = ArgumentParser::new();
         ap.set_description("Greet somebody.");
+        ap.add_option(&["-V", "--version"],
+            Print(env!("CARGO_PKG_VERSION").to_string()), "Show version");
         ap.refer(&mut verbose)
             .add_option(&["-v", "--verbose"], StoreTrue,
             "Be verbose");

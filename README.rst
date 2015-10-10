@@ -180,6 +180,15 @@ ArgumentParser Methods
     Attach the variable to argument parser. The options are added to the
     returned ``Ref`` object and modify a variable passed to the method.
 
+``parser.add_option(names: &[&str], action: TypedAction, help: &str)``
+    Add a single option which has no parameters. Most options must be added
+    by ``refer(..)`` and methods on ``Ref`` object (see below).
+
+    Example::
+
+        ap.add_option(&["-V", "--version"],
+            Print(env!("CARGO_PKG_VERSION").to_string()), "Show version");
+
 ``parser.set_description(descr: &str)``
     Set description that is at the top of help message.
 
@@ -313,3 +322,12 @@ The following actions are available out of the box. They may be used in either
 
     Both of the above parse ``[4, 5, 6]`` as ``lst1`` and
     the ``[1, 2, 3]`` as the ``lst2``.
+
+``Print(value)``
+    Print the text and exit (with status ``0``). Useful for ``--version``
+    option::
+
+        ap.add_option(&["-V", "--version"],
+            Print(env!("CARGO_PKG_VERSION").to_string()), "Show version");
+
+

@@ -23,6 +23,7 @@ use super::action::Action::{Flag, Single, Push, Many};
 use super::action::IArgAction;
 use super::generic::StoreAction;
 use super::help::{HelpAction, wrap_text};
+use action::IFlagAction;
 
 use self::ArgumentKind::{Positional, ShortOption, LongOption, Delimiter};
 
@@ -659,6 +660,16 @@ impl<'parser> ArgumentParser<'parser> {
             varid: id,
             parser: self,
         });
+    }
+
+    /// Add option to argument parser
+    ///
+    /// This is only useful for options that don't store value. For
+    /// example `Print(...)`
+    pub fn add_option<F:IFlagAction + 'parser>(&mut self,
+        names: &[&'parser str], action: F, help: &'parser str)
+    {
+        self.add_option_for(None, names, Flag(Box::new(action)), help);
     }
 
     /// Set description of the command
