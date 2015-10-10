@@ -16,33 +16,41 @@ containers:
 commands:
 
   make: !Command
+    description: Build the library
     container: build
-    run: [make]
+    run: [cargo, build]
 
   test: !Command
+    description: Run the tests
     container: build
-    run: [make, test]
+    run: [cargo, test]
+
+  doc: !Command
+    description: Build cargo-based docs
+    epilog: |
+      ---------------------------------------------------
+      Documentation is now at target/doc/rotor/index.html
+    container: build
+    run: [cargo, doc]
+
+  cargo: !Command
+    container: build
+    run: [cargo]
 
   example-greeting: !Command
     description: Build and run "greeting" example
     container: build
     accepts-arguments: true
-    run: |
-      make greeting
-      ./greeting "$@"
+    run: [cargo, run, --example, greeting, "--"]
 
   example-structure: !Command
     description: Build and run "structure" example
     container: build
     accepts-arguments: true
-    run: |
-      make structure
-      ./structure "$@"
+    run: [cargo, run, --example, structure, "--"]
 
   example-subcommands: !Command
     description: Build and run "subcommands" example
     container: build
     accepts-arguments: true
-    run: |
-      make subcommands
-      ./subcommands "$@"
+    run: [cargo, run, --example, subcommands, "--"]
