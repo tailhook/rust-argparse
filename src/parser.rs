@@ -606,6 +606,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
 
 /// The main argument parser class
 pub struct ArgumentParser<'parser> {
+    title: String,
     description: &'parser str,
     vars: Vec<Box<Var>>,
     options: Vec<Rc<GenericOption<'parser>>>,
@@ -624,8 +625,15 @@ impl<'parser> ArgumentParser<'parser> {
 
     /// Create an empty argument parser
     pub fn new() -> ArgumentParser<'parser> {
+        let args: Vec<String> = env::args().collect();
+        let title = if args.len() > 0 { 
+            args[0].clone()
+        } else { 
+            "program".to_string()
+        };
 
         let mut ap = ArgumentParser {
+            title: title,
             description: "",
             vars: Vec::new(),
             env_vars: Vec::new(),
@@ -675,6 +683,11 @@ impl<'parser> ArgumentParser<'parser> {
     /// Set description of the command
     pub fn set_description(&mut self, descr: &'parser str) {
         self.description = descr;
+    }
+    
+    /// Set the title of the program
+    pub fn set_title(&mut self, title: &str) {
+        self.title = title.to_string();
     }
 
     fn add_option_for(&mut self, var: Option<usize>,
@@ -738,16 +751,15 @@ impl<'parser> ArgumentParser<'parser> {
         stdout: &mut Write, stderr: &mut Write)
         -> Result<(), i32>
     {
-        let name = if args.len() > 0 { &args[0][..] } else { "unknown" };
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(name, stdout).unwrap();
+                self.print_help(&self.title, stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(&name[..], &message[..], stderr);
+                self.error(&self.title[..], &message[..], stderr);
                 return Err(2);
             }
         }

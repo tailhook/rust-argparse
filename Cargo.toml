@@ -4,8 +4,8 @@ name = "argparse"
 description = "Powerful command-line argument parsing library"
 license = "MIT"
 readme = "README.rst"
-keywords = ["command-line", "cli", "command", "argument"]
+keywords = ["command-line", "cli", "command", "argument", "parser"]
 homepage = "http://github.com/tailhook/rust-argparse"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["paul@colomiets.name"]
 
