@@ -606,7 +606,7 @@ impl<'parser, 'refer, T: 'static + FromStr> Ref<'parser, 'refer, T> {
 
 /// The main argument parser class
 pub struct ArgumentParser<'parser> {
-    title: String,
+    title: Option<String>,
     description: &'parser str,
     vars: Vec<Box<Var>>,
     options: Vec<Rc<GenericOption<'parser>>>,
@@ -623,17 +623,10 @@ pub struct ArgumentParser<'parser> {
 
 impl<'parser> ArgumentParser<'parser> {
 
-    /// Create an empty argument parser
+    /// Creates an empty argument parser
     pub fn new() -> ArgumentParser<'parser> {
-        let args: Vec<String> = env::args().collect();
-        let title = if args.len() > 0 { 
-            args[0].clone()
-        } else { 
-            "program".to_string()
-        };
-
         let mut ap = ArgumentParser {
-            title: title,
+            title: None,
             description: "",
             vars: Vec::new(),
             env_vars: Vec::new(),
@@ -650,9 +643,8 @@ impl<'parser> ArgumentParser<'parser> {
         return ap;
     }
 
-    /// Borrow mutable variable for an argument
-    ///
-    /// This returns `Ref` object which should be used configure the option
+    /// Borrows a variable to be mutated when parsing an argument, and
+    /// returns an object that can be used to set this argument.
     pub fn refer<'x, T>(&'x mut self, val: &'parser mut T)
         -> Box<Ref<'parser, 'x, T>>
     {
@@ -670,7 +662,7 @@ impl<'parser> ArgumentParser<'parser> {
         });
     }
 
-    /// Add option to argument parser
+    /// Adds an option to the parser
     ///
     /// This is only useful for options that don't store value. For
     /// example `Print(...)`
@@ -680,14 +672,14 @@ impl<'parser> ArgumentParser<'parser> {
         self.add_option_for(None, names, Flag(Box::new(action)), help);
     }
 
-    /// Set description of the command
+    /// Sets the description of the command
     pub fn set_description(&mut self, descr: &'parser str) {
         self.description = descr;
     }
     
-    /// Set the title of the program
+    /// Sets the title of the program
     pub fn set_title(&mut self, title: &str) {
-        self.title = title.to_string();
+        self.title = Some(title.to_string());
     }
 
     fn add_option_for(&mut self, var: Option<usize>,
@@ -727,45 +719,45 @@ impl<'parser> ArgumentParser<'parser> {
         self.options.push(opt);
     }
 
-    /// Print help
-    ///
-    /// Usually command-line option is used for printing help,
-    /// this is here for any awkward cases
+    /// Prints the full description of the parser's options.
+    /// This is invoked by default when the '-h' or '--help' flag is passed.
     pub fn print_help(&self, name: &str, writer: &mut Write) -> IoResult<()> {
         return HelpFormatter::print_help(self, name, writer);
     }
 
-    /// Print usage
-    ///
+    /// Prints the usage string for the parser.
+    /// This is what is shown when the user passes wrong arguments to the program.
     /// Usually printed into stderr on error of command-line parsing
     pub fn print_usage(&self, name: &str, writer: &mut Write) -> IoResult<()>
     {
         return HelpFormatter::print_usage(self, name, writer);
     }
 
-    /// Parse arguments
-    ///
-    /// This is most powerful method. Usually you need `parse_args`
-    /// or `parse_args_or_exit` instead
-    pub fn parse(&self, args: Vec<String>,
+    /// Parses the given arguments with the parser, writing output and errors to the
+    /// given objects.
+    pub fn parse(&self, args: &Vec<String>,
         stdout: &mut Write, stderr: &mut Write)
         -> Result<(), i32>
     {
-        match Context::parse(self, &args, stderr) {
+        match Context::parse(self, args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
             Help => {
-                self.print_help(&self.title, stdout).unwrap();
+                let name = self.title.as_ref().map_or("<program>".to_string(),
+                    |s| s.clone());
+                self.print_help(&name, stdout).unwrap();
                 return Err(0);
             }
             Error(message) => {
-                self.error(&self.title[..], &message[..], stderr);
+                let name = self.title.as_ref().map_or("<program>".to_string(),
+                    |s| s.clone());
+                self.error(&name, &message[..], stderr);
                 return Err(2);
             }
         }
     }
 
-    /// Write an error similar to one produced by the library itself
+    /// Writes an error similar to then ones produced by this library.
     ///
     /// Only needed if you like to do some argument validation that is out
     /// of scope of the argparse
@@ -774,14 +766,14 @@ impl<'parser> ArgumentParser<'parser> {
         write!(writer, "{}: {}\n", command, message).ok();
     }
 
-    /// Configure parser to ignore options when first non-option argument is
-    /// encountered.
+    /// Configures the parser to ignore everything after the first non-option 
+    /// argument.
     ///
-    /// Useful for commands that want to pass following options to the
-    /// subcommand or subprocess, but need some options to be set before
-    /// command is specified.
-    pub fn stop_on_first_argument(&mut self, want_stop: bool) {
-        self.stop_on_first_argument = want_stop;
+    /// Useful for commands that need to pass arguments to a subcommand or 
+    /// subprocess, but requires some options to be set before the command is
+    /// specified.
+    pub fn stop_on_first_argument(&mut self, stop: bool) {
+        self.stop_on_first_argument = stop;
     }
 
     /// Do not put double-dash (bare `--`) into argument
@@ -799,23 +791,26 @@ impl<'parser> ArgumentParser<'parser> {
         self.silence_double_dash = silence;
     }
 
-    /// Convenience method to parse arguments
-    ///
-    /// On error returns error code that is supposed to be returned by
-    /// an application. (i.e. zero on `--help` and `2` on argument error)
-    pub fn parse_args(&self) -> Result<(), i32> {
+    /// Parses the arguments given to the program and returns a return code in
+    /// case of an error.
+    pub fn parse_args(&mut self) -> Result<(), i32> {
         // TODO(tailhook) can we get rid of collect?
-        return self.parse(env::args().collect(),
-            &mut stdout(), &mut stderr());
+        let args: Vec<String> = env::args().collect();
+        if self.title.is_none() && args.len() > 0 {
+            self.title = Some(args[0].clone());
+        }
+        return self.parse(&args, &mut stdout(), &mut stderr());
     }
 
-    /// The simplest conveninece method
-    ///
-    /// The method returns only in case of successful parsing or exits with
-    /// appropriate code (including successful on `--help`) otherwise.
-    pub fn parse_args_or_exit(&self) {
+    /// Parses the arguments given to the program or exits after printing 
+    /// the usage string.
+    pub fn parse_args_or_exit(&mut self) {
         // TODO(tailhook) can we get rid of collect?
-        self.parse(env::args().collect(), &mut stdout(), &mut stderr())
+        let args: Vec<String> = env::args().collect();
+        if self.title.is_none() && args.len() > 0 {
+            self.title = Some(args[0].clone());
+        }
+        self.parse(&args, &mut stdout(), &mut stderr())
             .map_err(|c| exit(c))
             .ok();
     }
@@ -871,9 +866,9 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         try!(write!(self.buf, "{}", name));
         num += name.len();
         for name in niter {
-            try!(write!(self.buf, ","));
+            try!(write!(self.buf, ", "));
             try!(write!(self.buf, "{}", name));
-            num += name.len() + 1;
+            num += name.len() + 2;
         }
         match opt.action {
             Flag(_) => {}
@@ -932,13 +927,13 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
     }
 
     fn write_usage(&mut self) -> IoResult<()> {
-        try!(write!(self.buf, "Usage:\n    "));
+        try!(write!(self.buf, "usage:\n    "));
         try!(write!(self.buf, "{}", self.name));
         if self.parser.options.len() != 0 {
             if self.parser.short_options.len() > 1
                 || self.parser.long_options.len() > 1
             {
-                try!(write!(self.buf, " [OPTIONS]"));
+                try!(write!(self.buf, " [--help | OPTIONS]"));
             }
             for opt in self.parser.arguments.iter() {
                 let var = &self.parser.vars[opt.varid];
