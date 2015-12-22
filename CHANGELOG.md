@@ -5,4 +5,5 @@
 
 ### Additions
 - Added a ```set_title``` option to the argument parser
-- The parser now uses only uses the first argument as the program title when parsing the program's args (env::args) eg. with ```parse_args``` and ```parse_args_or_exit```
+- The parser now only uses the first argument as the program title when parsing the program's args (env::args) eg. with ```parse_args``` and ```parse_args_or_exit```
+- The documentation for the parser should be a little easier to understand now
