@@ -18,9 +18,9 @@ fn parse_str(args: &[&str]) -> PathBuf {
 #[test]
 fn test_path() {
     assert_eq!(parse_str(&["./argparse_test", "-s", "/hello"]),
-               From::from("/hello"));
+               PathBuf::from("/hello"));
     assert_eq!(parse_str(&["./argparse_test", "--set", "a///b/../c"]),
-               From::from("a/b/../c"));
+               PathBuf::from("a/b/../c"));
 }
 
 #[test]
