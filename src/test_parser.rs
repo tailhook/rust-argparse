@@ -1,4 +1,3 @@
-use std::str::from_utf8;
 
 use parser::ArgumentParser;
 
