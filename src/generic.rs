@@ -31,17 +31,17 @@ pub struct ListAction<'a, T: 'a> {
     cell: Rc<RefCell<&'a mut Vec<T>>>,
 }
 
-impl<T: 'static + Copy> TypedAction<T> for StoreConst<T> {
+impl<T: 'static + Clone> TypedAction<T> for StoreConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut T>>) -> Action<'x> {
-        let StoreConst(val) = *self;
-        return Flag(Box::new(StoreConstAction { cell: cell, value: val }));
+        let StoreConst(ref val) = *self;
+        return Flag(Box::new(StoreConstAction { cell: cell, value: val.clone() }));
     }
 }
 
-impl<T: 'static + Copy> TypedAction<Vec<T>> for PushConst<T> {
+impl<T: 'static + Clone> TypedAction<Vec<T>> for PushConst<T> {
     fn bind<'x>(&self, cell: Rc<RefCell<&'x mut Vec<T>>>) -> Action<'x> {
-        let PushConst(val) = *self;
-        return Flag(Box::new(PushConstAction { cell: cell, value: val }));
+        let PushConst(ref val) = *self;
+        return Flag(Box::new(PushConstAction { cell: cell, value: val.clone() }));
     }
 }
 
@@ -69,18 +69,18 @@ impl<T: 'static + FromStr + Clone> TypedAction<Vec<T>> for Collect {
     }
 }
 
-impl<'a, T: Copy> IFlagAction for StoreConstAction<'a, T> {
+impl<'a, T: Clone> IFlagAction for StoreConstAction<'a, T> {
     fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
-        **targ = self.value;
+        **targ = self.value.clone();
         return Parsed;
     }
 }
 
-impl<'a, T: Copy> IFlagAction for PushConstAction<'a, T> {
+impl<'a, T: Clone> IFlagAction for PushConstAction<'a, T> {
     fn parse_flag(&self) -> ParseResult {
         let mut targ = self.cell.borrow_mut();
-        targ.push(self.value);
+        targ.push(self.value.clone());
         return Parsed;
     }
 }

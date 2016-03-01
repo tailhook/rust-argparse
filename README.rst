@@ -253,24 +253,25 @@ The following actions are available out of the box. They may be used in either
 
 ``Store``
     An option has single argument. Stores a value from command-line in a
-    variable. Any type that has ``FromStr`` trait implemented may be used.
+    variable. Any type that has the ``FromStr`` and ``Clone`` traits implemented
+    may be used.
 
 ``StoreOption``
     As ``Store``, but wrap value with ``Some`` for use with ``Option``. For
     example:
-    
+
         let mut x: Option<i32> = None;
         ap.refer(&mut x).add_option(&["-x"], StoreOption, "Set var x");
 
 ``StoreConst(value)``
     An option has no arguments. Store a hard-coded ``value`` into variable,
-    when specified. Any type may be used.
+    when specified. Any type with the ``Clone`` trait implemented may be used.
 
 ``PushConst(value)``
     An option has no arguments. Push a hard-coded ``value`` into variable,
-    when specified. Any type may be used. Option might used for a list of
-    operations to perform, when ``required`` is set for this variable, at least
-    one operation is required.
+    when specified. Any type which has the ``Clone`` type implemented may be
+    used. Option might used for a list of operations to perform, when ``required``
+    is set for this variable, at least one operation is required.
 
 ``StoreTrue``
     Stores boolean ``true`` value in a variable.
@@ -283,11 +284,11 @@ The following actions are available out of the box. They may be used in either
 
 ``IncrBy(num)``
     An option has no arguments. Increments the value stored in a variable by a
-    value ``num``. Any type which has ``Add`` trait may be used.
+    value ``num``. Any type which has the ``Add`` and ``Clone`` traits may be used.
 
 ``DecrBy(nym)``
     Decrements the value stored in a variable by a value ``num``. Any type
-    which has ``Add`` trait may be used.
+    which has the ``Add`` and ``Clone`` traits may be used.
 
 ``Collect``
     When used for an ``--option``, requires single argument. When used for a
