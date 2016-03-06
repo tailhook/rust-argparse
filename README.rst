@@ -119,7 +119,7 @@ For example::
         .add_option(&["-v", "--verbose"], StoreTrue,
                     "Be verbose");
 
-You made add multiple options for the same variable::
+You may add multiple options for the same variable::
 
     parser.refer(&mut verbose)
         .add_option(&["-v", "--verbose"], StoreTrue,
