@@ -14,7 +14,7 @@ fn test_empty() {
         + "\n"
         + "Test program\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -42,7 +42,7 @@ Test program. The description of the program is ought to be very long, because
 we want to test how word wrapping works for it. So some more text would be ok
 for the test\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  --value VALUE         Set integer value\n"
         + "  -L,--long-option LONG_OPTION\n"
@@ -65,10 +65,10 @@ fn test_argument() {
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  value                 Integer value\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -92,11 +92,11 @@ fn test_arguments() {
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  v1                    Integer value 1\n"
         + "  v2                    More values\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -122,11 +122,11 @@ fn test_req_arguments() {
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  v1                    Integer value 1\n"
         + "  v2                    More values\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -147,7 +147,7 @@ fn test_metavar() {
         + "\n"
         + "Test program.\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  -L,--long-option VAL  Long option value\n"
         , from_utf8(&buf[..]).unwrap().to_string());

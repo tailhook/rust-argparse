@@ -897,7 +897,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         if self.parser.arguments.len() > 0
             || self.parser.catchall_argument.is_some()
         {
-            try!(write!(self.buf, "\npositional arguments:\n"));
+            try!(write!(self.buf, "\nPositional arguments:\n"));
             for arg in self.parser.arguments.iter() {
                 try!(self.print_argument(&**arg));
             }
@@ -911,7 +911,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         if self.parser.short_options.len() > 0
             || self.parser.long_options.len() > 0
         {
-            try!(write!(self.buf, "\noptional arguments:\n"));
+            try!(write!(self.buf, "\nOptional arguments:\n"));
             for opt in self.parser.options.iter() {
                 try!(self.print_option(&**opt));
             }

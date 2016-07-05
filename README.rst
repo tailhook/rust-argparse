@@ -63,7 +63,7 @@ what we have now::
 
     Greet somebody.
 
-    optional arguments:
+    Optional arguments:
      -h, --help  show this help message and exit
      -v, --verbose
                  Be verbose
