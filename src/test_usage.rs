@@ -8,7 +8,7 @@ fn test_empty() {
     let ap = ArgumentParser::new();
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
-    assert_eq!("Usage:\n    ./argparse_test\n", from_utf8(&buf[..]).unwrap());
+    assert_eq!("Usage:\n  ./argparse_test\n", from_utf8(&buf[..]).unwrap());
 }
 
 #[test]
@@ -22,7 +22,7 @@ fn test_options() {
             "Set integer value");
         assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
     }
-    assert_eq!("Usage:\n    ./argparse_test [OPTIONS]\n",
+    assert_eq!("Usage:\n  ./argparse_test [OPTIONS]\n",
         from_utf8(&buf[..]).unwrap());
 }
 
@@ -35,7 +35,7 @@ fn test_argument() {
         "Integer value");
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
-    assert_eq!("Usage:\n    ./argparse_test [VALUE]\n",
+    assert_eq!("Usage:\n  ./argparse_test [VALUE]\n",
         from_utf8(&buf[..]).unwrap());
 }
 
@@ -52,6 +52,6 @@ fn test_arguments() {
         "More values");
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_usage("./argparse_test", &mut buf).is_ok());
-    assert_eq!("Usage:\n    ./argparse_test [V1] [V2 ...]\n",
+    assert_eq!("Usage:\n  ./argparse_test [V1] [V2 ...]\n",
         from_utf8(&buf[..]).unwrap());
 }

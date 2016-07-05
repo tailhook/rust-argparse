@@ -10,11 +10,11 @@ fn test_empty() {
     ap.set_description("Test program");
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test\n"
+        + "  ./argparse_test\n"
         + "\n"
         + "Test program\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -36,13 +36,13 @@ fn test_options() {
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test [OPTIONS]
+        + "  ./argparse_test [OPTIONS]
 
 Test program. The description of the program is ought to be very long, because
 we want to test how word wrapping works for it. So some more text would be ok
 for the test\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  --value VALUE         Set integer value\n"
         + "  -L,--long-option LONG_OPTION\n"
@@ -61,14 +61,14 @@ fn test_argument() {
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test [VALUE]\n"
+        + "  ./argparse_test [VALUE]\n"
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  value                 Integer value\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -88,15 +88,15 @@ fn test_arguments() {
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test [V1] [V2 ...]\n"
+        + "  ./argparse_test [V1] [V2 ...]\n"
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  v1                    Integer value 1\n"
         + "  v2                    More values\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -118,15 +118,15 @@ fn test_req_arguments() {
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test V1 V2 [...]\n"
+        + "  ./argparse_test V1 V2 [...]\n"
         + "\n"
         + "Test program\n"
         + "\n"
-        + "positional arguments:\n"
+        + "Positional arguments:\n"
         + "  v1                    Integer value 1\n"
         + "  v2                    More values\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
@@ -143,11 +143,11 @@ fn test_metavar() {
     let mut buf = Vec::<u8>::new();
     assert!(ap.print_help("./argparse_test", &mut buf).is_ok());
     assert_eq!("Usage:\n".to_string()
-        + "    ./argparse_test [OPTIONS]\n"
+        + "  ./argparse_test [OPTIONS]\n"
         + "\n"
         + "Test program.\n"
         + "\n"
-        + "optional arguments:\n"
+        + "Optional arguments:\n"
         + "  -h,--help             show this help message and exit\n"
         + "  -L,--long-option VAL  Long option value\n"
         , from_utf8(&buf[..]).unwrap().to_string());
