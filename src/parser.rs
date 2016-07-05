@@ -638,7 +638,7 @@ impl<'parser> ArgumentParser<'parser> {
             silence_double_dash: true,
             };
         ap.add_option_for(None, &["-h", "--help"], Flag(Box::new(HelpAction)),
-            "show this help message and exit");
+            "Show this help message and exit");
         return ap;
     }
 
