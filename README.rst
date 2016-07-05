@@ -59,15 +59,16 @@ what we have now::
 
     $ rustc greeting.rs
     $ ./greeting -h
-    Usage: ./greeting [OPTIONS]
+    Usage:
+      ./greeting [OPTIONS]
 
     Greet somebody.
 
     Optional arguments:
-     -h, --help  show this help message and exit
-     -v, --verbose
+      -h, --help  show this help message and exit
+      -v, --verbose
                  Be verbose
-     --name NAME Name for the greeting
+      --name NAME Name for the greeting
     $ ./greeting
     Hello World!
     $ ./greeting --name Bob

@@ -920,7 +920,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
     }
 
     fn write_usage(&mut self) -> IoResult<()> {
-        try!(write!(self.buf, "Usage:\n    "));
+        try!(write!(self.buf, "Usage:\n  "));
         try!(write!(self.buf, "{}", self.name));
         if self.parser.options.len() != 0 {
             if self.parser.short_options.len() > 1
