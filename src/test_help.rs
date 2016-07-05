@@ -15,7 +15,7 @@ fn test_empty() {
         + "Test program\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
 
@@ -43,7 +43,7 @@ we want to test how word wrapping works for it. So some more text would be ok
 for the test\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         + "  --value VALUE         Set integer value\n"
         + "  -L,--long-option LONG_OPTION\n"
         + "                        Long option value\n"
@@ -69,7 +69,7 @@ fn test_argument() {
         + "  value                 Integer value\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
 
@@ -97,7 +97,7 @@ fn test_arguments() {
         + "  v2                    More values\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
 
@@ -127,7 +127,7 @@ fn test_req_arguments() {
         + "  v2                    More values\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }
 
@@ -148,7 +148,7 @@ fn test_metavar() {
         + "Test program.\n"
         + "\n"
         + "Optional arguments:\n"
-        + "  -h,--help             show this help message and exit\n"
+        + "  -h,--help             Show this help message and exit\n"
         + "  -L,--long-option VAL  Long option value\n"
         , from_utf8(&buf[..]).unwrap().to_string());
 }

@@ -65,7 +65,7 @@ what we have now::
     Greet somebody.
 
     Optional arguments:
-      -h, --help  show this help message and exit
+      -h, --help  Show this help message and exit
       -v, --verbose
                  Be verbose
       --name NAME Name for the greeting
