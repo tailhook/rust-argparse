@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="rustdoc">
+    <meta name="description" content="API documentation for the Rust `ArgumentParser` struct in crate `argparse`.">
+    <meta name="keywords" content="rust, rustlang, rust-lang, ArgumentParser">
+
+    <title>argparse::parser::ArgumentParser - Rust</title>
+
+    <link rel="stylesheet" type="text/css" href="../../rustdoc.css">
+    <link rel="stylesheet" type="text/css" href="../../main.css">
+    
+
+    
+    
+</head>
+<body class="rustdoc">
+    <!--[if lte IE 8]>
+    <div class="warning">
+        This old browser is unsupported and will most likely display funky
+        things.
+    </div>
+    <![endif]-->
+
+    
+
+    <nav class="sidebar">
+        
+        <p class='location'><a href='../index.html'>argparse</a>::<wbr><a href='index.html'>parser</a></p><script>window.sidebarCurrent = {name: 'ArgumentParser', ty: 'struct', relpath: ''};</script><script defer src="sidebar-items.js"></script>
+    </nav>
+
+    <nav class="sub">
+        <form class="search-form js-only">
+            <div class="search-container">
+                <input class="search-input" name="search"
+                       autocomplete="off"
+                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
+                       type="search">
+            </div>
+        </form>
+    </nav>
+
+    <section id='main' class="content struct">
+<h1 class='fqn'><span class='in-band'>Struct <a href='../index.html'>argparse</a>::<wbr><a href='index.html'>parser</a>::<wbr><a class='struct' href=''>ArgumentParser</a></span><span class='out-of-band'><span id='render-detail'>
+                   <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">
+                       [<span class='inner'>&#x2212;</span>]
+                   </a>
+               </span><a id='src-362' class='srclink' href='../../src/argparse/src/parser.rs.html#608-619' title='goto source code'>[src]</a></span></h1>
+<pre class='rust struct'>pub struct ArgumentParser&lt;'parser&gt; { /* fields omitted */ }</pre><div class='docblock'><p>The main argument parser class</p>
+</div><h2 id='methods'>Methods</h2><h3 class='impl'><span class='in-band'><code>impl&lt;'parser&gt; <a class='struct' href='../../argparse/parser/struct.ArgumentParser.html' title='argparse::parser::ArgumentParser'>ArgumentParser</a>&lt;'parser&gt;</code></span><span class='out-of-band'><div class='ghost'></div><a id='src-374' class='srclink' href='../../src/argparse/src/parser.rs.html#623-810' title='goto source code'>[src]</a></span></h3>
+<div class='impl-items'><h4 id='method.new' class='method'><span id='new.v' class='invisible'><code>fn <a href='#method.new' class='fnname'>new</a>() -&gt; <a class='struct' href='../../argparse/parser/struct.ArgumentParser.html' title='argparse::parser::ArgumentParser'>ArgumentParser</a>&lt;'parser&gt;</code></span></h4>
+<div class='docblock'><p>Create an empty argument parser</p>
+</div><h4 id='method.refer' class='method'><span id='refer.v' class='invisible'><code>fn <a href='#method.refer' class='fnname'>refer</a>&lt;'x,&nbsp;T&gt;(&amp;'x mut self, val: &amp;'parser mut T) -&gt; <a class='struct' href='https://doc.rust-lang.org/nightly/alloc/boxed/struct.Box.html' title='alloc::boxed::Box'>Box</a>&lt;<a class='struct' href='../../argparse/parser/struct.Ref.html' title='argparse::parser::Ref'>Ref</a>&lt;'parser,&nbsp;'x,&nbsp;T&gt;&gt;</code></span></h4>
+<div class='docblock'><p>Borrow mutable variable for an argument</p>
+
+<p>This returns <code>Ref</code> object which should be used configure the option</p>
+</div><h4 id='method.add_option' class='method'><span id='add_option.v' class='invisible'><code>fn <a href='#method.add_option' class='fnname'>add_option</a>&lt;F:&nbsp;<a class='trait' href='../../argparse/action/trait.IFlagAction.html' title='argparse::action::IFlagAction'>IFlagAction</a> + 'parser&gt;(&amp;mut self, names: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>&amp;[</a>&amp;'parser <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a><a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.slice.html'>]</a>, action: F, help: &amp;'parser <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></span></h4>
+<div class='docblock'><p>Add option to argument parser</p>
+
+<p>This is only useful for options that don&#39;t store value. For
+example <code>Print(...)</code></p>
+</div><h4 id='method.set_description' class='method'><span id='set_description.v' class='invisible'><code>fn <a href='#method.set_description' class='fnname'>set_description</a>(&amp;mut self, descr: &amp;'parser <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>)</code></span></h4>
+<div class='docblock'><p>Set description of the command</p>
+</div><h4 id='method.print_help' class='method'><span id='print_help.v' class='invisible'><code>fn <a href='#method.print_help' class='fnname'>print_help</a>(&amp;self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, writer: &amp;mut <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>IoResult</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></span></h4>
+<div class='docblock'><p>Print help</p>
+
+<p>Usually command-line option is used for printing help,
+this is here for any awkward cases</p>
+</div><h4 id='method.print_usage' class='method'><span id='print_usage.v' class='invisible'><code>fn <a href='#method.print_usage' class='fnname'>print_usage</a>(&amp;self, name: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, writer: &amp;mut <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>) -&gt; <a class='type' href='https://doc.rust-lang.org/nightly/std/io/error/type.Result.html' title='std::io::error::Result'>IoResult</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>&gt;</code></span></h4>
+<div class='docblock'><p>Print usage</p>
+
+<p>Usually printed into stderr on error of command-line parsing</p>
+</div><h4 id='method.parse' class='method'><span id='parse.v' class='invisible'><code>fn <a href='#method.parse' class='fnname'>parse</a>(&amp;self, args: <a class='struct' href='https://doc.rust-lang.org/nightly/collections/vec/struct.Vec.html' title='collections::vec::Vec'>Vec</a>&lt;<a class='struct' href='https://doc.rust-lang.org/nightly/collections/string/struct.String.html' title='collections::string::String'>String</a>&gt;, stdout: &amp;mut <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>, stderr: &amp;mut <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>&gt;</code></span></h4>
+<div class='docblock'><p>Parse arguments</p>
+
+<p>This is most powerful method. Usually you need <code>parse_args</code>
+or <code>parse_args_or_exit</code> instead</p>
+</div><h4 id='method.error' class='method'><span id='error.v' class='invisible'><code>fn <a href='#method.error' class='fnname'>error</a>(&amp;self, command: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, message: &amp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.str.html'>str</a>, writer: &amp;mut <a class='trait' href='https://doc.rust-lang.org/nightly/std/io/trait.Write.html' title='std::io::Write'>Write</a>)</code></span></h4>
+<div class='docblock'><p>Write an error similar to one produced by the library itself</p>
+
+<p>Only needed if you like to do some argument validation that is out
+of scope of the argparse</p>
+</div><h4 id='method.stop_on_first_argument' class='method'><span id='stop_on_first_argument.v' class='invisible'><code>fn <a href='#method.stop_on_first_argument' class='fnname'>stop_on_first_argument</a>(&amp;mut self, want_stop: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>)</code></span></h4>
+<div class='docblock'><p>Configure parser to ignore options when first non-option argument is
+encountered.</p>
+
+<p>Useful for commands that want to pass following options to the
+subcommand or subprocess, but need some options to be set before
+command is specified.</p>
+</div><h4 id='method.silence_double_dash' class='method'><span id='silence_double_dash.v' class='invisible'><code>fn <a href='#method.silence_double_dash' class='fnname'>silence_double_dash</a>(&amp;mut self, silence: <a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.bool.html'>bool</a>)</code></span></h4>
+<div class='docblock'><p>Do not put double-dash (bare <code>--</code>) into argument</p>
+
+<p>The double-dash is used to stop parsing options and treat all the
+following tokens as the arguments regardless of whether they start
+with dash (minus) or not.</p>
+
+<p>The method only useful for <code>List</code> arguments. On by default. The method
+allows to set option to <code>false</code> so that <code>cmd xx -- yy</code> will get
+<code>xx -- yy</code> as arguments instead of <code>xx yy</code> by default. This is
+useful if your <code>--</code> argument is meaningful. Only first double-dash
+is ignored by default.</p>
+</div><h4 id='method.parse_args' class='method'><span id='parse_args.v' class='invisible'><code>fn <a href='#method.parse_args' class='fnname'>parse_args</a>(&amp;self) -&gt; <a class='enum' href='https://doc.rust-lang.org/nightly/core/result/enum.Result.html' title='core::result::Result'>Result</a>&lt;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.tuple.html'>()</a>,&nbsp;<a class='primitive' href='https://doc.rust-lang.org/nightly/std/primitive.i32.html'>i32</a>&gt;</code></span></h4>
+<div class='docblock'><p>Convenience method to parse arguments</p>
+
+<p>On error returns error code that is supposed to be returned by
+an application. (i.e. zero on <code>--help</code> and <code>2</code> on argument error)</p>
+</div><h4 id='method.parse_args_or_exit' class='method'><span id='parse_args_or_exit.v' class='invisible'><code>fn <a href='#method.parse_args_or_exit' class='fnname'>parse_args_or_exit</a>(&amp;self)</code></span></h4>
+<div class='docblock'><p>The simplest conveninece method</p>
+
+<p>The method returns only in case of successful parsing or exits with
+appropriate code (including successful on <code>--help</code>) otherwise.</p>
+</div></div></section>
+    <section id='search' class="content hidden"></section>
+
+    <section class="footer"></section>
+
+    <aside id="help" class="hidden">
+        <div>
+            <h1 class="hidden">Help</h1>
+
+            <div class="shortcuts">
+                <h2>Keyboard Shortcuts</h2>
+
+                <dl>
+                    <dt>?</dt>
+                    <dd>Show this help dialog</dd>
+                    <dt>S</dt>
+                    <dd>Focus the search field</dd>
+                    <dt>&larrb;</dt>
+                    <dd>Move up in search results</dd>
+                    <dt>&rarrb;</dt>
+                    <dd>Move down in search results</dd>
+                    <dt>&#9166;</dt>
+                    <dd>Go to active search result</dd>
+                    <dt>+</dt>
+                    <dd>Collapse/expand all sections</dd>
+                </dl>
+            </div>
+
+            <div class="infos">
+                <h2>Search Tricks</h2>
+
+                <p>
+                    Prefix searches with a type followed by a colon (e.g.
+                    <code>fn:</code>) to restrict the search to a given type.
+                </p>
+
+                <p>
+                    Accepted types are: <code>fn</code>, <code>mod</code>,
+                    <code>struct</code>, <code>enum</code>,
+                    <code>trait</code>, <code>type</code>, <code>macro</code>,
+                    and <code>const</code>.
+                </p>
+
+                <p>
+                    Search functions by type signature (e.g.
+                    <code>vec -> usize</code> or <code>* -> vec</code>)
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    
+
+    <script>
+        window.rootPath = "../../";
+        window.currentCrate = "argparse";
+        window.playgroundUrl = "";
+    </script>
+    <script src="../../jquery.js"></script>
+    <script src="../../main.js"></script>
+    
+    <script defer src="../../search-index.js"></script>
+</body>
+</html>
