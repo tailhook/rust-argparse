@@ -147,7 +147,7 @@ easily borrow variables from the structure into option parser. For example::
         verbose: bool,
     }
     ...
-    let mut options = Options { verbose: false }
+    let mut options = Options { verbose: false };
     parser.refer(&mut options.verbose)
         .add_option(&["-v"], StoreTrue,
                     "Be verbose");
