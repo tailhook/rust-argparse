@@ -126,7 +126,7 @@ You may add multiple options for the same variable::
         .add_option(&["-v", "--verbose"], StoreTrue,
                     "Be verbose")
         .add_option(&["-q", "--quiet"], StoreFalse,
-                    "Be verbose");
+                    "Be quiet");
 
 Similarly positional arguments are added::
 
@@ -260,6 +260,8 @@ The following actions are available out of the box. They may be used in either
 ``StoreOption``
     As ``Store``, but wrap value with ``Some`` for use with ``Option``. For
     example:
+
+.. code-block::
 
         let mut x: Option<i32> = None;
         ap.refer(&mut x).add_option(&["-x"], StoreOption, "Set var x");
