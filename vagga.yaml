@@ -2,10 +2,10 @@ containers:
 
   build:
     setup:
-    - !Ubuntu trusty
-    - !Install [make, gcc, libc6-dev, ca-certificates]
+    - !Ubuntu bionic
+    - !Install [build-essential]
     - !TarInstall
-      url: http://static.rust-lang.org/dist/rust-1.5.0-x86_64-unknown-linux-gnu.tar.gz
+      url: https://static.rust-lang.org/dist/rust-1.28.0-x86_64-unknown-linux-gnu.tar.gz
       # We install rustc and cargo, but skip rust-docs
       script: "./install.sh --prefix=/usr \
         --components=rustc,rust-std-x86_64-unknown-linux-gnu,cargo"
@@ -25,14 +25,6 @@ commands:
     description: Run the tests
     container: build
     run: [cargo, test]
-
-  doc: !Command
-    description: Build cargo-based docs
-    epilog: |
-      ---------------------------------------------------
-      Documentation is now at target/doc/rotor/index.html
-    container: build
-    run: [cargo, doc]
 
   cargo: !Command
     container: build
