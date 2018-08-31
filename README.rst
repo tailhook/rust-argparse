@@ -18,7 +18,7 @@ Edit your Cargo.toml to add ``rust-argparse`` to your project.
 .. code-block:: rust
 
     [dependencies]
-    argparse = "0.2.1"
+    argparse = "0.2.2"
 
 
 Example
