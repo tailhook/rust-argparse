@@ -8,9 +8,11 @@ use std::iter::Peekable;
 use std::slice::Iter;
 use std::hash::Hash;
 use std::hash::Hasher;
-use std::ascii::AsciiExt;
 use std::str::FromStr;
 use std::process::exit;
+
+#[allow(unused_imports)] #[allow(deprecated)]
+use std::ascii::AsciiExt;
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry;
