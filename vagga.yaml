@@ -3,16 +3,21 @@ containers:
   build:
     setup:
     - !Ubuntu bionic
-    - !Install [build-essential]
+    - !Install [build-essential, ca-certificates, vim]
     - !TarInstall
       url: https://static.rust-lang.org/dist/rust-1.28.0-x86_64-unknown-linux-gnu.tar.gz
       # We install rustc and cargo, but skip rust-docs
       script: "./install.sh --prefix=/usr \
         --components=rustc,rust-std-x86_64-unknown-linux-gnu,cargo"
+    - &bulk !Tar
+      url: "https://github.com/tailhook/bulk/releases/download/v0.4.12/bulk-v0.4.12.tar.gz"
+      sha256: 7deeb4895b3909afea46194ef01bafdeb30ff89fc4a7b6497172ba117734040e
+      path: /
     environ:
       HOME: /work/run
     volumes:
       /tmp: !Tmpfs { size: 100Mi }
+
 
 commands:
 
@@ -47,3 +52,8 @@ commands:
     container: build
     accepts-arguments: true
     run: [cargo, run, --example, subcommands, "--"]
+
+  _bulk: !Command
+    description: Run `bulk` command (for version bookkeeping)
+    container: build
+    run: [bulk]

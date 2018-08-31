@@ -1,0 +1,11 @@
+minimum-bulk: v0.4.5
+
+versions:
+
+- file: Cargo.toml
+  block-start: ^\[package\]
+  block-end: ^\[.*\]
+  regex: ^version\s*=\s*"(\S+)"
+
+- file: README.rst
+  regex: ^\s*argparse\s*=\s*"(\S+)"
