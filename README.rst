@@ -129,7 +129,7 @@ You may add multiple options for the same variable::
 
 Similarly positional arguments are added::
 
-    let mut command = String;
+    let mut command = String::new();
     parser.refer(&mut command)
         .add_argument("command", Store,
                       "Command to run");
