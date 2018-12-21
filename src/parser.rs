@@ -407,8 +407,8 @@ impl<'a, 'b> Context<'a, 'b> {
                             continue;
                         }
                         Error(err) => {
-                            write!(self.stderr,
-                                "WARNING: Environment variable {}: {}\n",
+                            writeln!(self.stderr,
+                                "WARNING: Environment variable {}: {}",
                                 evar.name, err).ok();
                         }
                         _ => unreachable!(),
@@ -761,7 +761,7 @@ impl<'parser> ArgumentParser<'parser> {
     /// of scope of the argparse
     pub fn error(&self, command: &str, message: &str, writer: &mut Write) {
         self.print_usage(command, writer).unwrap();
-        write!(writer, "{}: {}\n", command, message).ok();
+        writeln!(writer, "{}: {}", command, message).ok();
     }
 
     /// Configure parser to ignore options when first non-option argument is
