@@ -35,7 +35,7 @@ impl<'a> Iterator for WordsIter<'a> {
         loop {
             let (idx, ch) = match self.iter.next() {
                 None => return None,
-                Some((idx, ch)) => ((idx, ch)),
+                Some((idx, ch)) => (idx, ch),
             };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => continue,
@@ -48,7 +48,7 @@ impl<'a> Iterator for WordsIter<'a> {
         loop {
             let (idx, ch) = match self.iter.next() {
                 None => break,
-                Some((idx, ch)) => ((idx, ch)),
+                Some((idx, ch)) => (idx, ch),
             };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => {
