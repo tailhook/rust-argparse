@@ -192,7 +192,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 loop {
                     match self.iter.peek() {
                         None => { break; }
-                        Some(arg) if arg.starts_with("-") => {
+                        Some(arg) if arg.starts_with('-') => {
                             break;
                         }
                         Some(value) => {
