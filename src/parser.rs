@@ -192,7 +192,7 @@ impl<'a, 'b> Context<'a, 'b> {
                 loop {
                     match self.iter.peek() {
                         None => { break; }
-                        Some(arg) if arg.starts_with("-") => {
+                        Some(arg) if arg.starts_with('-') => {
                             break;
                         }
                         Some(value) => {
@@ -407,8 +407,8 @@ impl<'a, 'b> Context<'a, 'b> {
                             continue;
                         }
                         Error(err) => {
-                            write!(self.stderr,
-                                "WARNING: Environment variable {}: {}\n",
+                            writeln!(self.stderr,
+                                "WARNING: Environment variable {}: {}",
                                 evar.name, err).ok();
                         }
                         _ => unreachable!(),
@@ -515,7 +515,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
     {
         {
             let var = &mut self.parser.vars[self.varid];
-            if var.metavar.len() == 0 {
+            if var.metavar.is_empty() {
                 let mut longest_name = names[0];
                 let mut llen = longest_name.len();
                 for name in names.iter() {
@@ -565,7 +565,7 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         }
         {
             let var = &mut self.parser.vars[self.varid];
-            if var.metavar.len() == 0 {
+            if var.metavar.is_empty() {
                 var.metavar = name.to_string();
             }
         }
@@ -691,7 +691,7 @@ impl<'parser> ArgumentParser<'parser> {
             action: action,
             });
 
-        if names.len() < 1 {
+        if names.is_empty() {
             panic!("At least one name for option must be specified");
         }
         for nameptr in names.iter() {
@@ -740,7 +740,7 @@ impl<'parser> ArgumentParser<'parser> {
         stdout: &mut Write, stderr: &mut Write)
         -> Result<(), i32>
     {
-        let name = if args.len() > 0 { &args[0][..] } else { "unknown" };
+        let name = if !args.is_empty() { &args[0][..] } else { "unknown" };
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
             Exit => return Err(0),
@@ -761,7 +761,7 @@ impl<'parser> ArgumentParser<'parser> {
     /// of scope of the argparse
     pub fn error(&self, command: &str, message: &str, writer: &mut Write) {
         self.print_usage(command, writer).unwrap();
-        write!(writer, "{}: {}\n", command, message).ok();
+        writeln!(writer, "{}: {}", command, message).ok();
     }
 
     /// Configure parser to ignore options when first non-option argument is
@@ -892,11 +892,11 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
     fn write_help(&mut self) -> IoResult<()> {
         try!(self.write_usage());
         try!(write!(self.buf, "\n"));
-        if self.parser.description.len() > 0 {
+        if !self.parser.description.is_empty() {
             try!(wrap_text(self.buf, self.parser.description,TOTAL_WIDTH, 0));
             try!(write!(self.buf, "\n"));
         }
-        if self.parser.arguments.len() > 0
+        if !self.parser.arguments.is_empty()
             || self.parser.catchall_argument.is_some()
         {
             try!(write!(self.buf, "\nPositional arguments:\n"));
@@ -910,8 +910,8 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
                 None => {}
             }
         }
-        if self.parser.short_options.len() > 0
-            || self.parser.long_options.len() > 0
+        if !self.parser.short_options.is_empty()
+            || !self.parser.long_options.is_empty()
         {
             try!(write!(self.buf, "\nOptional arguments:\n"));
             for opt in self.parser.options.iter() {
@@ -924,7 +924,7 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
     fn write_usage(&mut self) -> IoResult<()> {
         try!(write!(self.buf, "Usage:\n  "));
         try!(write!(self.buf, "{}", self.name));
-        if self.parser.options.len() != 0 {
+        if !self.parser.options.is_empty() {
             if self.parser.short_options.len() > 1
                 || self.parser.long_options.len() > 1
             {

@@ -35,7 +35,7 @@ impl<'a> Iterator for WordsIter<'a> {
         loop {
             let (idx, ch) = match self.iter.next() {
                 None => return None,
-                Some((idx, ch)) => ((idx, ch)),
+                Some((idx, ch)) => (idx, ch),
             };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => continue,
@@ -48,7 +48,7 @@ impl<'a> Iterator for WordsIter<'a> {
         loop {
             let (idx, ch) = match self.iter.next() {
                 None => break,
-                Some((idx, ch)) => ((idx, ch)),
+                Some((idx, ch)) => (idx, ch),
             };
             match ch {
                 ' ' | '\t' | '\r' | '\n' => {
@@ -71,22 +71,22 @@ pub fn wrap_text(buf: &mut Write, data: &str, width: usize, indent: usize)
             return Ok(());
         }
         Some(word) => {
-            try!(buf.write(word.as_bytes()));
+            try!(buf.write_all(word.as_bytes()));
             off += word.len();
         }
     }
     for word in witer {
         if off + word.len() + 1 > width {
-            try!(buf.write(b"\n"));
+            try!(buf.write_all(b"\n"));
             for _ in 0..indent {
-                try!(buf.write(b" "));
+                try!(buf.write_all(b" "));
             }
             off = indent;
         } else {
-            try!(buf.write(b" "));
+            try!(buf.write_all(b" "));
             off += 1;
         }
-        try!(buf.write(word.as_bytes()));
+        try!(buf.write_all(word.as_bytes()));
         off += word.len();
     }
     return Ok(());
