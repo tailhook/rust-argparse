@@ -17,7 +17,7 @@ pub fn check_ok(ap: &ArgumentParser, args: &[&str]) {
     }
 }
 
-pub fn check_exit(ap: &ArgumentParser, args: &[&str]) {
+pub fn check_exit(ap: &ArgumentParser, args: &[&str]) -> (Vec<u8>, Vec<u8>) {
     let mut stdout = Vec::<u8>::new();
     let mut stderr = Vec::<u8>::new();
     let mut owned_args = Vec::new();
@@ -26,7 +26,7 @@ pub fn check_exit(ap: &ArgumentParser, args: &[&str]) {
     }
     let res = ap.parse(owned_args, &mut stdout, &mut stderr);
     match res {
-        Err(0) => return,
+        Err(0) => return (stdout, stderr),
         Err(x) => panic!(format!("Expected code {} got {}", 0usize, x)),
         Ok(()) => panic!(format!("Expected failure, got success")),
     }

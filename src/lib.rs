@@ -62,3 +62,4 @@ pub struct DecrBy<T>(pub T);
 #[cfg(test)] mod test_env;
 #[cfg(test)] mod test_const;
 #[cfg(test)] mod test_path;
+#[cfg(test)] mod test_print;

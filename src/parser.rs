@@ -743,7 +743,16 @@ impl<'parser> ArgumentParser<'parser> {
         let name = if !args.is_empty() { &args[0][..] } else { "unknown" };
         match Context::parse(self, &args, stderr) {
             Parsed => return Ok(()),
-            Exit => return Err(0),
+            Exit(message) => {
+                if let Some(message) = message {
+                    if message.ends_with('\n') {
+                        write!(stdout, "{}", message).unwrap();
+                    } else {
+                        writeln!(stdout, "{}", message).unwrap();
+                    }
+                }
+                return Err(0);
+            },
             Help => {
                 self.print_help(name, stdout).unwrap();
                 return Err(0);
