@@ -81,7 +81,7 @@ struct GenericOption<'parser> {
 struct EnvVar<'parser> {
     varid: usize,
     name: &'parser str,
-    action: Box<IArgAction + 'parser>,
+    action: Box<dyn IArgAction + 'parser>,
 }
 
 impl<'a> Hash for GenericOption<'a> {
@@ -139,7 +139,7 @@ struct Context<'ctx, 'parser: 'ctx> {
     list_arguments: HashMap<Rc<GenericArgument<'parser>>, Vec<&'ctx str>>,
     arguments: Vec<&'ctx str>,
     iter: Peekable<Iter<'ctx, String>>,
-    stderr: &'ctx mut (Write + 'ctx),
+    stderr: &'ctx mut (dyn Write + 'ctx),
 }
 
 impl<'a, 'b> Context<'a, 'b> {
@@ -459,7 +459,7 @@ impl<'a, 'b> Context<'a, 'b> {
         return Parsed;
     }
 
-    fn parse(parser: &ArgumentParser, args: &Vec<String>, stderr: &mut Write)
+    fn parse(parser: &ArgumentParser, args: &Vec<String>, stderr: &mut dyn Write)
         -> ParseResult
     {
         let mut ctx = Context {
@@ -552,9 +552,9 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
             Flag(_) => panic!("Flag arguments can't be positional"),
             Many(_) | Push(_) => {
                 match self.parser.catchall_argument {
-                    Some(ref y) => panic!(format!(
+                    Some(ref y) => panic!(
                         "Option {} conflicts with option {}",
-                        name, y.name)),
+                        name, y.name),
                     None => {},
                 }
                 self.parser.catchall_argument = Some(opt);
@@ -720,14 +720,14 @@ impl<'parser> ArgumentParser<'parser> {
     ///
     /// Usually command-line option is used for printing help,
     /// this is here for any awkward cases
-    pub fn print_help(&self, name: &str, writer: &mut Write) -> IoResult<()> {
+    pub fn print_help(&self, name: &str, writer: &mut dyn Write) -> IoResult<()> {
         return HelpFormatter::print_help(self, name, writer);
     }
 
     /// Print usage
     ///
     /// Usually printed into stderr on error of command-line parsing
-    pub fn print_usage(&self, name: &str, writer: &mut Write) -> IoResult<()>
+    pub fn print_usage(&self, name: &str, writer: &mut dyn Write) -> IoResult<()>
     {
         return HelpFormatter::print_usage(self, name, writer);
     }
@@ -737,7 +737,7 @@ impl<'parser> ArgumentParser<'parser> {
     /// This is most powerful method. Usually you need `parse_args`
     /// or `parse_args_or_exit` instead
     pub fn parse(&self, args: Vec<String>,
-        stdout: &mut Write, stderr: &mut Write)
+        stdout: &mut dyn Write, stderr: &mut dyn Write)
         -> Result<(), i32>
     {
         let name = if !args.is_empty() { &args[0][..] } else { "unknown" };
@@ -759,7 +759,7 @@ impl<'parser> ArgumentParser<'parser> {
     ///
     /// Only needed if you like to do some argument validation that is out
     /// of scope of the argparse
-    pub fn error(&self, command: &str, message: &str, writer: &mut Write) {
+    pub fn error(&self, command: &str, message: &str, writer: &mut dyn Write) {
         self.print_usage(command, writer).unwrap();
         writeln!(writer, "{}: {}", command, message).ok();
     }
@@ -814,18 +814,18 @@ impl<'parser> ArgumentParser<'parser> {
 struct HelpFormatter<'a, 'b: 'a> {
     name: &'a str,
     parser: &'a ArgumentParser<'b>,
-    buf: &'a mut (Write + 'a),
+    buf: &'a mut (dyn Write + 'a),
 }
 
 impl<'a, 'b> HelpFormatter<'a, 'b> {
-    pub fn print_usage(parser: &ArgumentParser, name: &str, writer: &mut Write)
+    pub fn print_usage(parser: &ArgumentParser, name: &str, writer: &mut dyn Write)
         -> IoResult<()>
     {
         return HelpFormatter { parser: parser, name: name, buf: writer }
             .write_usage();
     }
 
-    pub fn print_help(parser: &ArgumentParser, name: &str, writer: &mut Write)
+    pub fn print_help(parser: &ArgumentParser, name: &str, writer: &mut dyn Write)
         -> IoResult<()>
     {
         return HelpFormatter { parser: parser, name: name, buf: writer }
@@ -836,76 +836,76 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         -> IoResult<()>
     {
         let mut num = 2;
-        try!(write!(self.buf, "  {}", arg.name));
+        write!(self.buf, "  {}", arg.name)?;
         num += arg.name.len();
         if num >= OPTION_WIDTH {
-            try!(write!(self.buf, "\n"));
+            write!(self.buf, "\n")?;
             for _ in 0..OPTION_WIDTH {
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
             }
         } else {
             for _ in num..OPTION_WIDTH {
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
             }
         }
-        try!(wrap_text(self.buf, arg.help, TOTAL_WIDTH, OPTION_WIDTH));
-        try!(write!(self.buf, "\n"));
+        wrap_text(self.buf, arg.help, TOTAL_WIDTH, OPTION_WIDTH)?;
+        write!(self.buf, "\n")?;
         return Ok(());
     }
 
     pub fn print_option(&mut self, opt: &GenericOption<'b>) -> IoResult<()> {
         let mut num = 2;
-        try!(write!(self.buf, "  "));
+        write!(self.buf, "  ")?;
         let mut niter = opt.names.iter();
         let name = niter.next().unwrap();
-        try!(write!(self.buf, "{}", name));
+        write!(self.buf, "{}", name)?;
         num += name.len();
         for name in niter {
-            try!(write!(self.buf, ","));
-            try!(write!(self.buf, "{}", name));
+            write!(self.buf, ",")?;
+            write!(self.buf, "{}", name)?;
             num += name.len() + 1;
         }
         match opt.action {
             Flag(_) => {}
             Single(_) | Push(_) | Many(_) => {
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
                 let var = &self.parser.vars[opt.varid.unwrap()];
-                try!(write!(self.buf, "{}", &var.metavar[..]));
+                write!(self.buf, "{}", &var.metavar[..])?;
                 num += var.metavar.len() + 1;
             }
         }
         if num >= OPTION_WIDTH {
-            try!(write!(self.buf, "\n"));
+            write!(self.buf, "\n")?;
             for _ in 0..OPTION_WIDTH {
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
             }
         } else {
             for _ in num..OPTION_WIDTH {
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
             }
         }
-        try!(wrap_text(self.buf, opt.help, TOTAL_WIDTH, OPTION_WIDTH));
-        try!(write!(self.buf, "\n"));
+        wrap_text(self.buf, opt.help, TOTAL_WIDTH, OPTION_WIDTH)?;
+        write!(self.buf, "\n")?;
         return Ok(());
     }
 
     fn write_help(&mut self) -> IoResult<()> {
-        try!(self.write_usage());
-        try!(write!(self.buf, "\n"));
+        self.write_usage()?;
+        write!(self.buf, "\n")?;
         if !self.parser.description.is_empty() {
-            try!(wrap_text(self.buf, self.parser.description,TOTAL_WIDTH, 0));
-            try!(write!(self.buf, "\n"));
+            wrap_text(self.buf, self.parser.description,TOTAL_WIDTH, 0)?;
+            write!(self.buf, "\n")?;
         }
         if !self.parser.arguments.is_empty()
             || self.parser.catchall_argument.is_some()
         {
-            try!(write!(self.buf, "\nPositional arguments:\n"));
+            write!(self.buf, "\nPositional arguments:\n")?;
             for arg in self.parser.arguments.iter() {
-                try!(self.print_argument(&**arg));
+                self.print_argument(&**arg)?;
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
-                    try!(self.print_argument(&**opt));
+                    self.print_argument(&**opt)?;
                 }
                 None => {}
             }
@@ -913,54 +913,54 @@ impl<'a, 'b> HelpFormatter<'a, 'b> {
         if !self.parser.short_options.is_empty()
             || !self.parser.long_options.is_empty()
         {
-            try!(write!(self.buf, "\nOptional arguments:\n"));
+            write!(self.buf, "\nOptional arguments:\n")?;
             for opt in self.parser.options.iter() {
-                try!(self.print_option(&**opt));
+                self.print_option(&**opt)?;
             }
         }
         return Ok(());
     }
 
     fn write_usage(&mut self) -> IoResult<()> {
-        try!(write!(self.buf, "Usage:\n  "));
-        try!(write!(self.buf, "{}", self.name));
+        write!(self.buf, "Usage:\n  ")?;
+        write!(self.buf, "{}", self.name)?;
         if !self.parser.options.is_empty() {
             if self.parser.short_options.len() > 1
                 || self.parser.long_options.len() > 1
             {
-                try!(write!(self.buf, " [OPTIONS]"));
+                write!(self.buf, " [OPTIONS]")?;
             }
             for opt in self.parser.arguments.iter() {
                 let var = &self.parser.vars[opt.varid];
-                try!(write!(self.buf, " "));
+                write!(self.buf, " ")?;
                 if !var.required {
-                    try!(write!(self.buf, "["));
+                    write!(self.buf, "[")?;
                 }
-                try!(write!(self.buf, "{}",
-                    &opt.name.to_ascii_uppercase()[..]));
+                write!(self.buf, "{}",
+                    &opt.name.to_ascii_uppercase()[..])?;
                 if !var.required {
-                    try!(write!(self.buf, "]"));
+                    write!(self.buf, "]")?;
                 }
             }
             match self.parser.catchall_argument {
                 Some(ref opt) => {
                     let var = &self.parser.vars[opt.varid];
-                    try!(write!(self.buf, " "));
+                    write!(self.buf, " ")?;
                     if !var.required {
-                        try!(write!(self.buf, "["));
+                        write!(self.buf, "[")?;
                     }
-                    try!(write!(self.buf, "{}",
-                        &opt.name.to_ascii_uppercase()[..]));
+                    write!(self.buf, "{}",
+                        &opt.name.to_ascii_uppercase()[..])?;
                     if !var.required {
-                        try!(write!(self.buf, " ...]"));
+                        write!(self.buf, " ...]")?;
                     } else {
-                        try!(write!(self.buf, " [...]"));
+                        write!(self.buf, " [...]")?;
                     }
                 }
                 None => {}
             }
         }
-        try!(write!(self.buf, "\n"));
+        write!(self.buf, "\n")?;
         return Ok(());
     }
 

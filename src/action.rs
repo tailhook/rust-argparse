@@ -10,14 +10,14 @@ pub enum ParseResult {
 
 
 pub enum Action<'a> {
-    Flag(Box<IFlagAction + 'a>),
-    Single(Box<IArgAction + 'a>),
-    Push(Box<IArgsAction + 'a>),
-    Many(Box<IArgsAction + 'a>),
+    Flag(Box<dyn IFlagAction + 'a>),
+    Single(Box<dyn IArgAction + 'a>),
+    Push(Box<dyn IArgsAction + 'a>),
+    Many(Box<dyn IArgsAction + 'a>),
 }
 
 pub trait TypedAction<T> {
-    fn bind<'x>(&self, Rc<RefCell<&'x mut T>>) -> Action<'x>;
+    fn bind<'x>(&self, _:Rc<RefCell<&'x mut T>>) -> Action<'x>;
 }
 
 pub trait IFlagAction {
