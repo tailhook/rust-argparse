@@ -3,7 +3,7 @@
 name = "argparse"
 description = "Powerful command-line argument parsing library"
 license = "MIT"
-readme = "README.rst"
+readme = "README.md"
 keywords = ["command-line", "cli", "command", "argument"]
 categories = ["command-line-interface"]
 homepage = "http://github.com/tailhook/rust-argparse"
