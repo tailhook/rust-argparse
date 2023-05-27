@@ -27,6 +27,15 @@ fn test_options() {
 }
 
 #[test]
+#[should_panic(expected="At least one name for option must be specified")]
+fn test_option_empty_names() {
+  let mut val = 0;
+  let mut ap = ArgumentParser::new();
+  ap.refer(&mut val)
+    .add_option(&[], Store, "Set integer value");
+}
+
+#[test]
 fn test_argument() {
     let mut val = 0;
     let mut ap = ArgumentParser::new();
