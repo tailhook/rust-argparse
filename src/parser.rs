@@ -514,6 +514,9 @@ impl<'parser, 'refer, T> Ref<'parser, 'refer, T> {
         -> &'x mut Ref<'parser, 'refer, T>
     {
         {
+            if names.is_empty() {
+                panic!("At least one name for option must be specified");
+            }
             let var = &mut self.parser.vars[self.varid];
             if var.metavar.is_empty() {
                 let mut longest_name = names[0];
